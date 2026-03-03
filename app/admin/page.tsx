@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 
 /* ==========================================================================
    PAGE PLACEHOLDER MAP
+   Placeholder views for each currentPage until real pages are built.
    ========================================================================== */
 
 const PAGE_META: Record<
@@ -63,33 +64,8 @@ const PAGE_META: Record<
   },
 };
 
-/**
- * AdminContent reads the sidebar state from localStorage to sync
- * the margin-left offset with Navbar's sidebar toggle.
- */
 function AdminContent() {
   const { currentPage } = useNavigation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  /* Listen for changes to the sidebar state (via localStorage) */
-  useEffect(() => {
-    const checkSidebar = () => {
-      setSidebarOpen(localStorage.getItem("vigidoc-sidebar") === "open");
-    };
-    checkSidebar();
-
-    // Listen for storage changes from same-tab (custom event)
-    const handleStorage = () => checkSidebar();
-    window.addEventListener("storage", handleStorage);
-
-    // Poll every 200ms as a fallback for same-tab localStorage writes
-    const interval = setInterval(checkSidebar, 200);
-
-    return () => {
-      window.removeEventListener("storage", handleStorage);
-      clearInterval(interval);
-    };
-  }, []);
 
   const meta = PAGE_META[currentPage] ?? {
     label: currentPage,
@@ -101,11 +77,10 @@ function AdminContent() {
   return (
     <main
       className={cn(
-        "min-h-screen transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-        "pt-16 lg:pt-20",
-        "pb-24 lg:pb-6", // extra mobile bottom padding for raised nav
+        "min-h-screen",
+        "pt-16 lg:pt-20", // offset for fixed top bar
+        "pb-20 lg:pb-6", // offset for fixed bottom nav on mobile
         "px-4 sm:px-6 lg:px-8",
-        sidebarOpen ? "lg:ml-64" : "lg:ml-0",
       )}
     >
       <div className="mx-auto max-w-5xl">

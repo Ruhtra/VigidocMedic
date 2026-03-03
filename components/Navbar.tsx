@@ -17,8 +17,6 @@ import {
   Menu,
   X,
   Activity,
-  PanelLeftClose,
-  PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useThemeContext, useNavigation } from "@/lib/contexts";
@@ -50,6 +48,7 @@ interface Notification {
    CONSTANTS
    ========================================================================== */
 
+/** Primary navigation items shown in top bar and drawer */
 const NAV_ITEMS: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "patients", label: "Pacientes", icon: Users },
@@ -57,6 +56,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: "reports", label: "Relatórios", icon: FileText },
 ];
 
+/** Bottom bar items (mobile) – the center "scan" slot is handled separately */
 const BOTTOM_NAV_ITEMS: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "patients", label: "Pacientes", icon: Users },
@@ -65,6 +65,7 @@ const BOTTOM_NAV_ITEMS: NavItem[] = [
   { id: "menu", label: "Menu", icon: Menu },
 ];
 
+/** Mock notifications */
 const MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: 1,
@@ -90,7 +91,7 @@ const MOCK_NOTIFICATIONS: Notification[] = [
 ];
 
 /* ==========================================================================
-   ANIMATION VARIANTS
+   ANIMATION VARIANTS (Framer Motion)
    ========================================================================== */
 
 const overlayVariants = {
@@ -142,9 +143,6 @@ export default function Navbar({
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // Desktop sidebar state — persisted in localStorage
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   // Auto-hide top bar on mobile scroll
   const [topBarVisible, setTopBarVisible] = useState(true);
   const lastScrollY = useRef(0);
@@ -155,20 +153,6 @@ export default function Navbar({
 
   const unreadCount = MOCK_NOTIFICATIONS.filter((n) => n.unread).length;
 
-  /* ---- Restore sidebar preference from localStorage ---- */
-  useEffect(() => {
-    const stored = localStorage.getItem("vigidoc-sidebar");
-    if (stored === "open") setIsSidebarOpen(true);
-  }, []);
-
-  const toggleSidebar = useCallback(() => {
-    setIsSidebarOpen((prev) => {
-      const next = !prev;
-      localStorage.setItem("vigidoc-sidebar", next ? "open" : "closed");
-      return next;
-    });
-  }, []);
-
   /* ---- Auto-hide logic (mobile only, < 1024px) ---- */
   useEffect(() => {
     const handleScroll = () => {
@@ -178,9 +162,9 @@ export default function Navbar({
       }
       const currentY = window.scrollY;
       if (currentY > lastScrollY.current && currentY > 60) {
-        setTopBarVisible(false);
+        setTopBarVisible(false); // scrolling down
       } else {
-        setTopBarVisible(true);
+        setTopBarVisible(true); // scrolling up
       }
       lastScrollY.current = currentY;
     };
@@ -234,35 +218,15 @@ export default function Navbar({
           "transition-colors duration-300",
         )}
       >
-        {/* Left: sidebar toggle + Logo */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={toggleSidebar}
-            className={cn(
-              "p-2 rounded-lg cursor-pointer",
-              "text-muted-foreground hover:text-foreground hover:bg-muted",
-              "transition-all duration-200",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
-            )}
-            aria-label={
-              isSidebarOpen ? "Recolher menu lateral" : "Expandir menu lateral"
-            }
-          >
-            {isSidebarOpen ? (
-              <PanelLeftClose className="h-5 w-5" />
-            ) : (
-              <PanelLeftOpen className="h-5 w-5" />
-            )}
-          </button>
-          <div className="flex items-center gap-2">
-            <Activity className="h-6 w-6 text-primary" />
-            <span className="text-lg font-bold text-foreground tracking-tight">
-              Vigi<span className="text-primary">Doc</span>
-            </span>
-          </div>
+        {/* Logo */}
+        <div className="flex items-center gap-2">
+          <Activity className="h-6 w-6 text-primary" />
+          <span className="text-lg font-bold text-foreground tracking-tight">
+            Vigi<span className="text-primary">Doc</span>
+          </span>
         </div>
 
-        {/* Center nav links */}
+        {/* Nav links */}
         <nav className="flex items-center gap-1">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -353,119 +317,6 @@ export default function Navbar({
       </header>
 
       {/* ──────────────────────────────────────────────────────────────────
-          DESKTOP SIDEBAR  (visible only on lg+ when toggled open)
-          ────────────────────────────────────────────────────────────────── */}
-      <aside
-        className={cn(
-          "fixed top-16 left-0 bottom-0 z-40 hidden lg:flex flex-col",
-          "bg-background/95 backdrop-blur-xl border-r border-border",
-          "transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-          "overflow-hidden",
-          isSidebarOpen ? "w-64" : "w-0",
-        )}
-      >
-        <div className="flex flex-col flex-1 w-64 overflow-y-auto">
-          {/* Nav section */}
-          <div className="px-3 py-4">
-            <p className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Navegação
-            </p>
-            <div className="space-y-1">
-              {NAV_ITEMS.map((item) => {
-                const Icon = item.icon;
-                const isActive = currentPage === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => navigateTo(item.id)}
-                    className={cn(
-                      "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium cursor-pointer",
-                      "transition-all duration-200",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </button>
-                );
-              })}
-              {/* Scan link */}
-              <button
-                onClick={() => navigateTo("scan")}
-                className={cn(
-                  "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium cursor-pointer",
-                  "transition-all duration-200",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
-                  currentPage === "scan"
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                <ScanLine className="h-4 w-4" />
-                Scan
-              </button>
-            </div>
-          </div>
-
-          {/* Divider */}
-          <div className="mx-3 border-t border-border" />
-
-          {/* Account section */}
-          <div className="px-3 py-4">
-            <p className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Conta
-            </p>
-            <div className="space-y-1">
-              <SidebarItem
-                icon={User}
-                label="Perfil"
-                onClick={() => navigateTo("profile")}
-              />
-              <SidebarItem
-                icon={Settings}
-                label="Configurações"
-                onClick={() => navigateTo("settings")}
-              />
-              <button
-                onClick={toggle}
-                className={cn(
-                  "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium cursor-pointer",
-                  "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  "transition-all duration-200",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
-                )}
-              >
-                {theme === "dark" ? (
-                  <Sun className="h-4 w-4" />
-                ) : (
-                  <Moon className="h-4 w-4" />
-                )}
-                {theme === "dark" ? "Modo Claro" : "Modo Escuro"}
-              </button>
-            </div>
-          </div>
-
-          {/* Spacer */}
-          <div className="flex-1" />
-
-          {/* Logout at the bottom */}
-          <div className="px-3 py-4 border-t border-border">
-            <SidebarItem
-              icon={LogOut}
-              label="Sair"
-              onClick={() => {
-                /* logout placeholder */
-              }}
-              danger
-            />
-          </div>
-        </div>
-      </aside>
-
-      {/* ──────────────────────────────────────────────────────────────────
           MOBILE TOP BAR  (visible only on < lg, auto-hides on scroll)
           ────────────────────────────────────────────────────────────────── */}
       <header
@@ -480,6 +331,7 @@ export default function Navbar({
             : "-translate-y-full opacity-0",
         )}
       >
+        {/* Logo */}
         <div className="flex items-center gap-2">
           <Activity className="h-5 w-5 text-primary" />
           <span className="text-base font-bold text-foreground tracking-tight">
@@ -487,7 +339,9 @@ export default function Navbar({
           </span>
         </div>
 
+        {/* Right actions */}
         <div className="flex items-center gap-1">
+          {/* Notifications */}
           <div ref={notifRef} className="relative">
             <button
               onClick={() => {
@@ -514,6 +368,7 @@ export default function Navbar({
             </AnimatePresence>
           </div>
 
+          {/* Profile avatar */}
           <div ref={profileRef} className="relative">
             <button
               onClick={() => {
@@ -546,104 +401,77 @@ export default function Navbar({
       </header>
 
       {/* ──────────────────────────────────────────────────────────────────
-          MOBILE BOTTOM NAVIGATION  (improved layout)
-          - Taller bar with safe-area padding for phones with gesture bars
-          - Centered icons with clearer active state (pill background)
-          - Better spacing and alignment
+          MOBILE BOTTOM NAVIGATION  (visible only on < lg)
           ────────────────────────────────────────────────────────────────── */}
       <nav
         className={cn(
-          "fixed bottom-0 left-0 right-0 z-50 flex lg:hidden",
-          "bg-background/95 backdrop-blur-xl",
+          "fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-end justify-around",
+          "h-16 px-2 pb-1",
+          "bg-background/90 backdrop-blur-xl",
           "border-t border-border",
           "transition-colors duration-300",
         )}
-        style={{ paddingBottom: "env(safe-area-inset-bottom, 8px)" }}
       >
-        <div className="flex items-center justify-around w-full px-4 pt-2 pb-2">
-          {BOTTOM_NAV_ITEMS.map((item, index) => {
-            const Icon = item.icon;
-            const isActive = currentPage === item.id;
-            const isMenu = item.id === "menu";
+        {BOTTOM_NAV_ITEMS.map((item, index) => {
+          const Icon = item.icon;
+          const isActive = currentPage === item.id;
+          const isMenu = item.id === "menu";
 
-            return (
-              <React.Fragment key={item.id}>
-                {/* Insert FAB scan button before the 3rd item (index 2) */}
-                {index === 2 && (
-                  <button
-                    onClick={() => navigateTo("scan")}
-                    className={cn(
-                      "relative -top-5 flex items-center justify-center",
-                      "h-14 w-14 rounded-full cursor-pointer",
-                      "bg-gradient-to-br from-teal-500 to-emerald-500",
-                      "shadow-lg shadow-teal-500/30",
-                      "text-white",
-                      "transition-all duration-200",
-                      "hover:shadow-xl hover:shadow-teal-500/40 hover:scale-105",
-                      "active:scale-95",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2",
-                      currentPage === "scan" &&
-                        "ring-2 ring-primary/50 ring-offset-2 ring-offset-background",
-                    )}
-                    aria-label="Scan"
-                  >
-                    <ScanLine className="h-6 w-6" />
-                  </button>
-                )}
-
+          return (
+            <React.Fragment key={item.id}>
+              {/* Insert FAB scan button before the 3rd item (index 2) */}
+              {index === 2 && (
                 <button
-                  onClick={() =>
-                    isMenu ? setIsMobileMenuOpen(true) : navigateTo(item.id)
-                  }
+                  onClick={() => navigateTo("scan")}
                   className={cn(
-                    "relative flex flex-col items-center justify-center",
-                    "min-w-[56px] py-1.5 px-2 rounded-xl cursor-pointer",
+                    "relative -top-3 flex flex-col items-center justify-center",
+                    "h-14 w-14 rounded-full cursor-pointer",
+                    "bg-gradient-to-br from-teal-500 to-emerald-500",
+                    "shadow-lg shadow-teal-500/30",
+                    "text-white",
                     "transition-all duration-200",
-                    "focus-visible:outline-none",
-                    /* Active state: pill background + primary color */
-                    isActive && !isMenu
-                      ? "bg-primary/12 text-primary"
-                      : "text-muted-foreground hover:text-foreground",
+                    "hover:shadow-xl hover:shadow-teal-500/40 hover:scale-105",
+                    "active:scale-95",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2",
                   )}
-                  aria-label={item.label}
+                  aria-label="Scan"
                 >
-                  <Icon
-                    className={cn(
-                      "h-[22px] w-[22px] mb-1 transition-all duration-200",
-                      isActive && !isMenu
-                        ? "text-primary scale-110"
-                        : "text-inherit",
-                    )}
-                    strokeWidth={isActive && !isMenu ? 2.5 : 2}
-                  />
-                  <span
-                    className={cn(
-                      "text-[10px] leading-tight transition-all duration-200",
-                      isActive && !isMenu
-                        ? "font-bold text-primary"
-                        : "font-medium",
-                    )}
-                  >
-                    {item.label}
-                  </span>
-
-                  {/* Active bar indicator — visible line above icon */}
-                  {isActive && !isMenu && (
-                    <motion.span
-                      layoutId="mobile-active-indicator"
-                      className="absolute -top-2 left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-full bg-primary"
-                      transition={{
-                        type: "spring",
-                        stiffness: 380,
-                        damping: 30,
-                      }}
-                    />
-                  )}
+                  <ScanLine className="h-6 w-6" />
                 </button>
-              </React.Fragment>
-            );
-          })}
-        </div>
+              )}
+
+              <button
+                onClick={() =>
+                  isMenu ? setIsMobileMenuOpen(true) : navigateTo(item.id)
+                }
+                className={cn(
+                  "flex flex-col items-center justify-center gap-0.5",
+                  "flex-1 pt-2 pb-1 cursor-pointer",
+                  "transition-all duration-200",
+                  "focus-visible:outline-none",
+                  isActive && !isMenu
+                    ? "text-primary"
+                    : "text-muted-foreground",
+                )}
+                aria-label={item.label}
+              >
+                <Icon
+                  className={cn(
+                    "h-5 w-5 transition-colors duration-200",
+                    isActive && !isMenu && "text-primary",
+                  )}
+                />
+                <span className="text-[10px] font-medium leading-tight">
+                  {item.label}
+                </span>
+                {/* Active dot indicator */}
+                {isActive && !isMenu && (
+                  <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-primary" />
+                )}
+              </button>
+            </React.Fragment>
+          );
+        })}
       </nav>
 
       {/* ──────────────────────────────────────────────────────────────────
@@ -652,6 +480,7 @@ export default function Navbar({
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
+            {/* Backdrop overlay */}
             <motion.div
               key="drawer-overlay"
               variants={overlayVariants}
@@ -663,6 +492,7 @@ export default function Navbar({
               aria-hidden="true"
             />
 
+            {/* Drawer panel */}
             <motion.aside
               key="drawer-panel"
               variants={drawerVariants}
@@ -733,6 +563,7 @@ export default function Navbar({
                     );
                   })}
 
+                  {/* Scan link */}
                   <button
                     onClick={() => navigateTo("scan")}
                     className={cn(
@@ -749,8 +580,10 @@ export default function Navbar({
                   </button>
                 </div>
 
+                {/* Divider */}
                 <div className="my-4 border-t border-border" />
 
+                {/* Secondary actions */}
                 <p className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Conta
                 </p>
@@ -782,6 +615,7 @@ export default function Navbar({
                     {theme === "dark" ? "Modo Claro" : "Modo Escuro"}
                   </button>
 
+                  {/* Divider */}
                   <div className="my-2 border-t border-border" />
 
                   <DrawerItem
@@ -803,14 +637,10 @@ export default function Navbar({
 }
 
 /* ==========================================================================
-   Utility: export sidebar state for layout offset in parent
-   ========================================================================== */
-export { type NavbarProps };
-
-/* ==========================================================================
-   SUB-COMPONENTS
+   SUB-COMPONENTS (kept in same file for simplicity)
    ========================================================================== */
 
+/** Notification dropdown panel */
 function NotificationDropdown() {
   return (
     <motion.div
@@ -838,6 +668,7 @@ function NotificationDropdown() {
               notif.unread && "bg-primary/[0.03]",
             )}
           >
+            {/* Icon */}
             <div
               className={cn(
                 "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
@@ -848,6 +679,7 @@ function NotificationDropdown() {
             >
               <Bell className="h-4 w-4" />
             </div>
+            {/* Content */}
             <div className="flex-1 min-w-0">
               <p
                 className={cn(
@@ -866,6 +698,7 @@ function NotificationDropdown() {
                 {notif.time}
               </p>
             </div>
+            {/* Unread dot */}
             {notif.unread && (
               <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
             )}
@@ -886,6 +719,7 @@ function NotificationDropdown() {
   );
 }
 
+/** Profile / account dropdown */
 function ProfileDropdown({
   theme,
   toggle,
@@ -907,6 +741,7 @@ function ProfileDropdown({
         "overflow-hidden py-1",
       )}
     >
+      {/* User info header */}
       <div className="px-4 py-3 border-b border-border">
         <p className="text-sm font-semibold text-foreground">Dr. Admin</p>
         <p className="text-xs text-muted-foreground">admin@vigidoc.com</p>
@@ -954,6 +789,7 @@ function ProfileDropdown({
   );
 }
 
+/** Reusable dropdown menu item */
 function DropdownItem({
   icon: Icon,
   label,
@@ -982,36 +818,8 @@ function DropdownItem({
   );
 }
 
+/** Reusable drawer menu item */
 function DrawerItem({
-  icon: Icon,
-  label,
-  onClick,
-  danger = false,
-}: {
-  icon: React.ElementType;
-  label: string;
-  onClick: () => void;
-  danger?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium cursor-pointer",
-        "transition-all duration-200",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
-        danger
-          ? "text-destructive hover:bg-destructive/10"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground",
-      )}
-    >
-      <Icon className="h-4 w-4" />
-      {label}
-    </button>
-  );
-}
-
-function SidebarItem({
   icon: Icon,
   label,
   onClick,

@@ -33,6 +33,9 @@ import {
   pulseRing,
   scaleIn,
 } from "@/animations/variants";
+import { signIn, signUp } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 
 /* ==========================================================================
    ZOD SCHEMAS
@@ -179,6 +182,7 @@ export default function AuthPage({
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [showForgotSuccess, setShowForgotSuccess] = useState(false);
+  const router = useRouter();
 
   // --- Navigation helpers ---
   function goTo(target: AuthFlow) {
@@ -217,37 +221,79 @@ export default function AuthPage({
   // --- Handlers ---
   async function handleLogin(data: LoginData) {
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setIsLoading(false);
+    setSuccessMessage("");
+    setShowSuccess(false);
 
-    const role = data.email.toLowerCase().includes("usuario")
-      ? "user"
-      : "admin";
+    try {
+      await signIn.email(
+        {
+          email: data.email,
+          password: data.password,
+          rememberMe: data.remember || false,
+        },
+        {
+          onRequest: () => setIsLoading(true),
+          onError: (ctx) => {
+            setIsLoading(false);
+            loginForm.setError("email", {
+              message:
+                ctx.error.message ||
+                "Credenciais inválidas. Por favor, tente novamente.",
+            });
+          },
+          onSuccess: async (ctx) => {
+            const role = ctx.data.user.role;
 
-    const destination =
-      role === "admin" ? "Dashboard Administrativo" : "Home do Paciente";
+            setSuccessMessage(
+              `Login realizado! Redirecionando para aplicação!`,
+            );
+            setShowSuccess(true);
 
-    setSuccessMessage(`Login realizado! Redirecionando para ${destination}...`);
-    setShowSuccess(true);
-
-    // In a real app, redirect here. For now, log and show success.
-    console.log(`[VigiDoc Auth] Role: ${role} → Redirect: ${destination}`);
+            setTimeout(() => {
+              router.push(DEFAULT_LOGIN_REDIRECT[role]);
+            }, 1500);
+          },
+        },
+      );
+    } catch (error) {
+      console.error("Erro ao fazer login:", error);
+      setIsLoading(false);
+      loginForm.setError("root", { message: "Ocorreu um erro ao fazer login" });
+    }
   }
 
   async function handleRegister(data: RegisterData) {
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setIsLoading(false);
+    setSuccessMessage("");
+    setShowSuccess(false);
 
-    console.log("[VigiDoc Auth] Registered:", data);
-    setSuccessMessage("Conta criada com sucesso! Faça login para continuar.");
-    setShowSuccess(true);
+    try {
+      const res = await signUp.email({
+        email: data.email,
+        password: data.password,
+        name: `${data.firstName} ${data.lastName}`,
+      });
 
-    // After 2s, switch to login
-    setTimeout(() => {
-      goTo("login");
-      loginForm.setValue("email", data.email);
-    }, 2000);
+      setIsLoading(false);
+
+      if (res.error) {
+        registerForm.setError("email", {
+          message: res.error.message || "Erro ao criar conta",
+        });
+        return;
+      }
+
+      setSuccessMessage("Conta criada com sucesso! Faça login para continuar.");
+      setShowSuccess(true);
+
+      setTimeout(() => {
+        goTo("login");
+        loginForm.setValue("email", data.email);
+      }, 2000);
+    } catch (err) {
+      setIsLoading(false);
+      registerForm.setError("root", { message: "Ocorreu um erro no servidor" });
+    }
   }
 
   async function handleForgot(data: ForgotData) {
