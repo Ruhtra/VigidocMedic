@@ -2,6 +2,13 @@
 
 import React, { useState } from "react";
 import { useTheme } from "@/hooks/useTheme";
+import { useSession } from "@/lib/auth-client";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   Activity,
@@ -77,6 +84,7 @@ function RevealSection({
 // ─── Landing Page ───────────────────────────────────────────────────────────
 export default function LandingPage() {
   const { theme, toggle } = useTheme();
+  const { data: session, isPending } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
@@ -140,20 +148,37 @@ export default function LandingPage() {
               )}
             </button>
 
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/5 rounded-full hover:bg-slate-200 dark:hover:bg-white/10 transition-all"
-            >
-              <LogIn className="w-4 h-4" />
-              Entrar
-            </Link>
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 hover:scale-105 transition-all"
-            >
-              Começar Agora
-              <ChevronRight className="w-4 h-4" />
-            </Link>
+            {isPending ? (
+              <div className="flex gap-2">
+                <div className="h-9 w-24 bg-slate-200 dark:bg-slate-800 rounded-full animate-pulse" />
+                <div className="h-9 w-36 bg-slate-200 dark:bg-slate-800 rounded-full animate-pulse" />
+              </div>
+            ) : session ? (
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 hover:scale-105 transition-all"
+              >
+                Acessar Plataforma
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/5 rounded-full hover:bg-slate-200 dark:hover:bg-white/10 transition-all"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Entrar
+                </Link>
+                <Link
+                  href="/register"
+                  className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 hover:scale-105 transition-all"
+                >
+                  Começar Agora
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -169,60 +194,72 @@ export default function LandingPage() {
                 <Sun className="w-5 h-5" />
               )}
             </button>
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Menu"
-              className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
-            >
-              {mobileMenuOpen ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Menu className="w-5 h-5" />
-              )}
-            </button>
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <button
+                  aria-label="Menu"
+                  className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+                >
+                  <Menu className="w-5 h-5" />
+                </button>
+              </SheetTrigger>
+              <SheetContent
+                side="top"
+                className="w-full sm:w-[350px] bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl border-l border-slate-200/60 dark:border-white/5 p-6"
+              >
+                <SheetTitle className="sr-only">Menu de Navegação</SheetTitle>
+                <div className="mt-8 space-y-2">
+                  {navLinks.map((link) => (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                  <div className="pt-2 flex flex-col gap-2">
+                    {isPending ? (
+                      <>
+                        <div className="h-11 w-full bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+                        <div className="h-11 w-full bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+                      </>
+                    ) : session ? (
+                      <Link
+                        href="/login"
+                        className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-teal-500 to-emerald-500 rounded-xl shadow-lg shadow-teal-500/25"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Acessar Plataforma
+                        <ChevronRight className="w-4 h-4" />
+                      </Link>
+                    ) : (
+                      <>
+                        <Link
+                          href="/login"
+                          className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/5 rounded-xl"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <LogIn className="w-4 h-4" />
+                          Entrar
+                        </Link>
+                        <Link
+                          href="/register"
+                          className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-teal-500 to-emerald-500 rounded-xl shadow-lg shadow-teal-500/25"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Começar Agora
+                          <ChevronRight className="w-4 h-4" />
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
-
-        {/* Mobile menu dropdown */}
-        <motion.div
-          initial={false}
-          animate={
-            mobileMenuOpen
-              ? { height: "auto", opacity: 1 }
-              : { height: 0, opacity: 0 }
-          }
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="md:hidden overflow-hidden bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl border-b border-slate-200/60 dark:border-white/5"
-        >
-          <div className="px-4 py-4 space-y-2">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
-              >
-                {link.label}
-              </a>
-            ))}
-            <div className="pt-2 flex flex-col gap-2">
-              <Link
-                href="/login"
-                className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/5 rounded-xl"
-              >
-                <LogIn className="w-4 h-4" />
-                Entrar
-              </Link>
-              <Link
-                href="/register"
-                className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-teal-500 to-emerald-500 rounded-xl shadow-lg shadow-teal-500/25"
-              >
-                Começar Agora
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-        </motion.div>
       </header>
 
       {/* ================================================================= */}
@@ -292,13 +329,25 @@ export default function LandingPage() {
                 custom={0.35}
                 className="mt-8 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start"
               >
-                <Link
-                  href="/register"
-                  className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full shadow-xl shadow-teal-500/25 hover:shadow-teal-500/40 hover:scale-105 transition-all duration-300"
-                >
-                  Começar Agora
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+                {isPending ? (
+                  <div className="h-[52px] w-48 bg-slate-200 dark:bg-slate-800 rounded-full animate-pulse" />
+                ) : session ? (
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full shadow-xl shadow-teal-500/25 hover:shadow-teal-500/40 hover:scale-105 transition-all duration-300"
+                  >
+                    Acessar Plataforma
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                ) : (
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full shadow-xl shadow-teal-500/25 hover:shadow-teal-500/40 hover:scale-105 transition-all duration-300"
+                  >
+                    Começar Agora
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                )}
                 <a
                   href="#recursos"
                   className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full hover:bg-slate-50 dark:hover:bg-white/10 hover:scale-105 shadow-sm transition-all duration-300"
