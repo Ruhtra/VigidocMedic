@@ -15,6 +15,7 @@ import {
   NavigationProvider,
   useNavigation,
 } from "@/lib/contexts";
+import { QueryProvider } from "@/lib/query-provider";
 import Navbar from "@/components/Navbar";
 import { cn } from "@/lib/utils";
 
@@ -67,6 +68,28 @@ const PAGE_META: Record<
 function AdminContent() {
   const { currentPage } = useNavigation();
 
+  // Renderiza a tela de Dashboard (página principal do admin)
+  if (currentPage === "dashboard") {
+    return (
+      <main
+        className={cn(
+          "min-h-screen",
+          "pt-16 lg:pt-20",
+          "pb-20 lg:pb-6",
+          "px-4 sm:px-6 lg:px-8",
+        )}
+      >
+        <div className="mx-auto max-w-5xl py-6">
+          <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+            <h2 className="text-xl font-bold mb-4">Bem-vindo ao Dashboard</h2>
+            <p className="text-muted-foreground">Aqui ficarão as métricas e indicadores de saúde gerais da UPA.</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Placeholder genérico para demais páginas
   const meta = PAGE_META[currentPage] ?? {
     label: currentPage,
     icon: LayoutDashboard,
@@ -78,8 +101,8 @@ function AdminContent() {
     <main
       className={cn(
         "min-h-screen",
-        "pt-16 lg:pt-20", // offset for fixed top bar
-        "pb-20 lg:pb-6", // offset for fixed bottom nav on mobile
+        "pt-16 lg:pt-20",
+        "pb-20 lg:pb-6",
         "px-4 sm:px-6 lg:px-8",
       )}
     >
@@ -105,14 +128,16 @@ export default function AdminPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <ThemeProvider>
-      <NavigationProvider defaultPage="dashboard">
-        <Navbar
-          isMobileMenuOpen={isMobileMenuOpen}
-          setIsMobileMenuOpen={setIsMobileMenuOpen}
-        />
-        <AdminContent />
-      </NavigationProvider>
-    </ThemeProvider>
+    <QueryProvider>
+      <ThemeProvider>
+        <NavigationProvider defaultPage="dashboard">
+          <Navbar
+            isMobileMenuOpen={isMobileMenuOpen}
+            setIsMobileMenuOpen={setIsMobileMenuOpen}
+          />
+          <AdminContent />
+        </NavigationProvider>
+      </ThemeProvider>
+    </QueryProvider>
   );
 }

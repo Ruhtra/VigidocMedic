@@ -5,7 +5,7 @@
  * These routes do not require authentication
  * @type {string[]}
  */
-export const publicRoutes = ["/", "/unauthorized", "/not-found"];
+export const publicRoutes = ["/", "/unauthorized", "/not-found", "/logout"];
 
 /**
  * An array of routes that are used for authentication
@@ -25,7 +25,7 @@ export const apiAuthPrefix = "/api/auth";
  * An array of routes that require admin role
  * @type {string[]}
  */
-export const adminRoutes = ["/admin"];
+export const adminRoutes = ["/admin", "/patients"];
 
 /**
  * An array of routes that require user role

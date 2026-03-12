@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useThemeContext, useNavigation } from "@/lib/contexts";
+import { useRouter } from "next/navigation";
 
 /* ==========================================================================
    TYPES
@@ -98,19 +99,19 @@ const overlayVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { duration: 0.25, ease: "easeOut" } },
   exit: { opacity: 0, transition: { duration: 0.2, ease: "easeIn" } },
-};
+} as const;
 
 const drawerVariants = {
   hidden: { x: "100%" },
   visible: {
     x: 0,
-    transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] as const },
   },
   exit: {
     x: "100%",
-    transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] as const },
   },
-};
+} as const;
 
 const dropdownVariants = {
   hidden: { opacity: 0, y: -8, scale: 0.96 },
@@ -118,7 +119,7 @@ const dropdownVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] as const },
   },
   exit: {
     opacity: 0,
@@ -126,7 +127,7 @@ const dropdownVariants = {
     scale: 0.96,
     transition: { duration: 0.15, ease: "easeIn" },
   },
-};
+} as const;
 
 /* ==========================================================================
    NAVBAR COMPONENT
@@ -138,6 +139,7 @@ export default function Navbar({
 }: NavbarProps) {
   const { theme, toggle } = useThemeContext();
   const { currentPage, setCurrentPage } = useNavigation();
+  const router = useRouter();
 
   // Dropdown states
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -193,12 +195,19 @@ export default function Navbar({
   /* ---- Navigation handler ---- */
   const navigateTo = useCallback(
     (page: string) => {
-      setCurrentPage(page);
       setIsMobileMenuOpen(false);
       setIsNotifOpen(false);
       setIsProfileOpen(false);
+      
+      if (page === "patients") {
+        router.push("/patients");
+      } else if (page === "dashboard") {
+        router.push("/admin");
+      } else {
+        setCurrentPage(page);
+      }
     },
-    [setCurrentPage, setIsMobileMenuOpen],
+    [setCurrentPage, setIsMobileMenuOpen, router],
   );
 
   /* ======================================================================
@@ -621,9 +630,7 @@ export default function Navbar({
                   <DrawerItem
                     icon={LogOut}
                     label="Sair"
-                    onClick={() => {
-                      /* logout placeholder */
-                    }}
+                    onClick={() => router.push("/logout")}
                     danger
                   />
                 </div>
@@ -729,6 +736,8 @@ function ProfileDropdown({
   toggle: () => void;
   navigateTo: (page: string) => void;
 }) {
+  const router = useRouter();
+
   return (
     <motion.div
       variants={dropdownVariants}
@@ -779,9 +788,7 @@ function ProfileDropdown({
         <DropdownItem
           icon={LogOut}
           label="Sair"
-          onClick={() => {
-            /* logout placeholder */
-          }}
+          onClick={() => router.push("/logout")}
           danger
         />
       </div>
