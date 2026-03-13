@@ -3,7 +3,14 @@ import { getUserPermision } from "@/lib/casl/utils/getUserPermission";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { resolveStatus } from "@/lib/utils/vitals";
+import { 
+  resolveHeartRate, 
+  resolveO2Saturation, 
+  resolveTemperature, 
+  resolveSystolicPressure, 
+  resolvePain,
+  resolveGeneric 
+} from "@/lib/utils/vitals";
 import type { Patient, RecordSession } from "@/types/patient";
 
 export async function GET(req: Request) {
@@ -74,7 +81,7 @@ export async function GET(req: Request) {
           label: "FC",
           value: record.heartRate ?? "-",
           unit: "bpm",
-          status: resolveStatus(record.heartRate, [60, 100], [50, 120]),
+          status: resolveHeartRate(record.heartRate),
         },
         bloodPressure: {
           label: "PA",
@@ -83,31 +90,31 @@ export async function GET(req: Request) {
               ? `${record.systolic}/${record.diastolic}`
               : "-",
           unit: "mmHg",
-          status: resolveStatus(record.systolic, [90, 130], [80, 150]),
+          status: resolveSystolicPressure(record.systolic),
         },
         oxygenSaturation: {
           label: "SpO2",
           value: record.oxygenSaturation ?? "-",
           unit: "%",
-          status: resolveStatus(record.oxygenSaturation, [95, 100], [90, 94]),
+          status: resolveO2Saturation(record.oxygenSaturation),
         },
         temperature: {
           label: "Temp",
           value: record.temperature ?? "-",
           unit: "°C",
-          status: resolveStatus(record.temperature, [36.0, 37.5], [35.5, 38.5]),
+          status: resolveTemperature(record.temperature),
         },
         weight: {
           label: "Peso",
           value: record.weight ?? "-",
           unit: "kg",
-          status: "normal",
+          status: resolveGeneric(record.weight),
         },
         pain: {
           label: "Dor",
           value: record.painLevel ?? "-",
           unit: "/10",
-          status: resolveStatus(record.painLevel, [0, 3], [4, 6]),
+          status: resolvePain(record.painLevel),
         },
       };
     };

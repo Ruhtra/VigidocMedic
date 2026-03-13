@@ -2,7 +2,7 @@
 // Tipos centrais para a feature de listagem de pacientes
 
 /** Status de um sinal vital */
-export type VitalStatus = 'normal' | 'warning' | 'critical';
+export type VitalStatus = 'normal' | 'warning' | 'alert' | 'critical';
 
 /** Valor individual de um sinal vital */
 export interface VitalValue {

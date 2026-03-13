@@ -91,6 +91,7 @@ function formatTime(iso: string): string {
 
 function getWorstStatus(vitals: VitalValue[]): VitalStatus {
   if (vitals.some((v) => v.status === "critical")) return "critical";
+  if (vitals.some((v) => v.status === "alert")) return "alert";
   if (vitals.some((v) => v.status === "warning")) return "warning";
   return "normal";
 }
@@ -131,8 +132,10 @@ function VitalCard({ vital }: { vital: VitalValue }) {
   const statusStyles = {
     critical:
       "bg-red-50 border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300",
-    warning:
+    alert:
       "bg-orange-50 border-orange-200 text-orange-700 dark:bg-orange-900/20 dark:border-orange-800 dark:text-orange-300",
+    warning:
+      "bg-yellow-50 border-yellow-200 text-yellow-700 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-300",
     normal:
       "bg-muted/40 border-border/50 text-foreground dark:bg-muted/15",
   };

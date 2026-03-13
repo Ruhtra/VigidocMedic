@@ -36,7 +36,7 @@ import type { Patient, RecordSession, VitalValue, VitalStatus } from "@/types/pa
    ========================================================================== */
 
 type PeriodFilter = "7d" | "30d" | "90d" | "all";
-type SeverityFilter = "all" | "critical" | "warning";
+type SeverityFilter = "all" | "critical" | "alert" | "warning";
 
 const vitalIcons: Record<string, React.ElementType> = {
   FC: Heart,
@@ -57,7 +57,8 @@ const PERIOD_OPTIONS: { value: PeriodFilter; label: string; days: number | null 
 const SEVERITY_OPTIONS: { value: SeverityFilter; label: string; icon: React.ElementType }[] = [
   { value: "all", label: "Todos", icon: Filter },
   { value: "critical", label: "Críticos", icon: Activity },
-  { value: "warning", label: "Alertas", icon: AlertCircle },
+  { value: "alert", label: "Alertas", icon: AlertCircle },
+  { value: "warning", label: "Atenção", icon: AlertCircle },
 ];
 
 /* ==========================================================================
@@ -88,6 +89,7 @@ function getWorstStatus(record: RecordSession): VitalStatus {
     record.pain,
   ];
   if (vitals.some((v) => v.status === "critical")) return "critical";
+  if (vitals.some((v) => v.status === "alert")) return "alert";
   if (vitals.some((v) => v.status === "warning")) return "warning";
   return "normal";
 }
@@ -111,8 +113,10 @@ function VitalBadge({ vital }: { vital: VitalValue }) {
   const colors = {
     critical:
       "bg-red-50 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800",
-    warning:
+    alert:
       "bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800",
+    warning:
+      "bg-yellow-50 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800",
     normal:
       "bg-muted/50 text-foreground border-border/50 dark:bg-muted/20",
   };
@@ -154,13 +158,15 @@ function RecordTimelineItem({
 
   const statusDotColor = {
     critical: "bg-red-500 shadow-red-500/30 shadow-sm",
-    warning: "bg-orange-500 shadow-orange-500/30 shadow-sm",
+    alert: "bg-orange-500 shadow-orange-500/30 shadow-sm",
+    warning: "bg-yellow-500 shadow-yellow-500/30 shadow-sm",
     normal: "bg-emerald-500 shadow-emerald-500/30 shadow-sm",
   };
 
   const statusBorderColor = {
     critical: "border-l-red-400 dark:border-l-red-800",
-    warning: "border-l-orange-400 dark:border-l-orange-800",
+    alert: "border-l-orange-400 dark:border-l-orange-800",
+    warning: "border-l-yellow-400 dark:border-l-yellow-800",
     normal: "border-l-border",
   };
 
@@ -207,10 +213,12 @@ function RecordTimelineItem({
                   "text-[10px] font-bold",
                   status === "critical"
                     ? "border-red-300 text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800"
-                    : "border-orange-300 text-orange-600 bg-orange-50 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800",
+                    : status === "alert"
+                      ? "border-orange-300 text-orange-600 bg-orange-50 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800"
+                      : "border-yellow-300 text-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800"
                 )}
               >
-                {status === "critical" ? "Crítico" : "Alerta"}
+                {status === "critical" ? "Crítico" : status === "alert" ? "Alerta" : "Atenção"}
               </Badge>
             )}
           </div>
@@ -297,6 +305,7 @@ export default function PatientRecords({ patient }: PatientRecordsProps) {
     return {
       all: periodFiltered.length,
       critical: periodFiltered.filter((r) => getWorstStatus(r) === "critical").length,
+      alert: periodFiltered.filter((r) => getWorstStatus(r) === "alert").length,
       warning: periodFiltered.filter((r) => getWorstStatus(r) === "warning").length,
     };
   }, [patient, periodFilter]);
@@ -348,7 +357,7 @@ export default function PatientRecords({ patient }: PatientRecordsProps) {
                     severityFilter === option.value
                       ? option.value === "critical"
                         ? "destructive"
-                        : option.value === "warning"
+                        : option.value === "alert" || option.value === "warning"
                           ? "secondary"
                           : "default"
                       : "ghost"
@@ -358,14 +367,18 @@ export default function PatientRecords({ patient }: PatientRecordsProps) {
                   className={cn(
                     "h-8 px-3 text-xs whitespace-nowrap gap-1.5",
                     severityFilter === option.value
-                      ? option.value === "warning"
-                        ? "bg-amber-100/80 text-amber-800 hover:bg-amber-200/80 dark:bg-amber-900/40 dark:text-amber-200"
-                        : ""
+                      ? option.value === "alert"
+                        ? "bg-orange-100/80 text-orange-800 hover:bg-orange-200/80 dark:bg-orange-900/40 dark:text-orange-200"
+                        : option.value === "warning"
+                          ? "bg-yellow-100/80 text-yellow-800 hover:bg-yellow-200/80 dark:bg-yellow-900/40 dark:text-yellow-200"
+                          : ""
                       : option.value === "critical"
                         ? "text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                        : option.value === "warning"
-                          ? "text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-                          : "text-muted-foreground hover:text-foreground",
+                        : option.value === "alert"
+                          ? "text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                          : option.value === "warning"
+                            ? "text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+                            : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   <Icon size={14} />

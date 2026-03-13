@@ -49,7 +49,7 @@ const vitalIcons: Record<string, React.ElementType> = {
   Dor: Frown,
 };
 
-type FilterType = "all" | "critical" | "warning";
+type FilterType = "all" | "critical" | "alert" | "warning";
 
 /* ==========================================================================
    HELPER FUNCTIONS
@@ -65,6 +65,7 @@ function getWorstStatus(record: RecordSession): VitalStatus {
     record.pain,
   ];
   if (vitals.some((v) => v.status === "critical")) return "critical";
+  if (vitals.some((v) => v.status === "alert")) return "alert";
   if (vitals.some((v) => v.status === "warning")) return "warning";
   return "normal";
 }
@@ -138,8 +139,10 @@ function VitalDisplay({ vital }: { vital: VitalValue }) {
   const statusColors = {
     critical:
       "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800",
-    warning:
+    alert:
       "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800",
+    warning:
+      "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-800",
     normal:
       "bg-muted/30 text-muted-foreground border-border/50 dark:bg-muted/10 dark:text-muted-foreground dark:border-border/50",
   };
@@ -173,8 +176,10 @@ function VitalBadgeSmall({ vital }: { vital: VitalValue }) {
   const colors = {
     critical:
       "bg-red-50 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800",
-    warning:
+    alert:
       "bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800",
+    warning:
+      "bg-yellow-50 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800",
     normal: "bg-muted/50 text-foreground border-border/50 dark:bg-muted/20",
   };
 
@@ -237,9 +242,11 @@ function PatientCard({
                   "absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-card",
                   worstStatus === "critical"
                     ? "bg-red-500 animate-pulse"
-                    : worstStatus === "warning"
+                    : worstStatus === "alert"
                       ? "bg-orange-500"
-                      : "bg-emerald-500",
+                      : worstStatus === "warning"
+                        ? "bg-yellow-500"
+                        : "bg-emerald-500",
                 )}
               />
             </div>
@@ -479,6 +486,9 @@ export default function PatientList() {
       critical: searchedList.filter(
         (p) => getWorstStatus(p.lastRecord) === "critical",
       ).length,
+      alert: searchedList.filter(
+        (p) => getWorstStatus(p.lastRecord) === "alert",
+      ).length,
       warning: searchedList.filter(
         (p) => getWorstStatus(p.lastRecord) === "warning",
       ).length,
@@ -576,13 +586,40 @@ export default function PatientList() {
 
           <Button
             type="button"
+            variant={filterType === "alert" ? "secondary" : "outline"}
+            onClick={() => handleFilterClick("alert")}
+            className={cn(
+              "h-[42px] px-4 gap-2 whitespace-nowrap border-transparent w-auto",
+              filterType === "alert"
+                ? "bg-orange-100/80 text-orange-800 hover:bg-orange-200/80 dark:bg-orange-900/40 dark:text-orange-200"
+                : "text-orange-600 border-orange-200 hover:bg-orange-50 dark:border-orange-900/50 dark:hover:bg-orange-900/20",
+            )}
+          >
+            <AlertCircle size={16} />
+            <span className="hidden min-[450px]:inline">Alertas</span>
+            {!isLoading && (
+              <span
+                className={cn(
+                  "ml-0.5 text-[10px] px-1.5 py-0.5 rounded-full",
+                  filterType === "alert"
+                    ? "bg-orange-800/10 text-orange-800 dark:bg-orange-100/10 dark:text-orange-200"
+                    : "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
+                )}
+              >
+                {counts.alert}
+              </span>
+            )}
+          </Button>
+
+          <Button
+            type="button"
             variant={filterType === "warning" ? "secondary" : "outline"}
             onClick={() => handleFilterClick("warning")}
             className={cn(
               "h-[42px] px-4 gap-2 whitespace-nowrap border-transparent w-auto",
               filterType === "warning"
-                ? "bg-amber-100/80 text-amber-800 hover:bg-amber-200/80 dark:bg-amber-900/40 dark:text-amber-200"
-                : "text-amber-600 border-amber-200 hover:bg-amber-50 dark:border-amber-900/50 dark:hover:bg-amber-900/20",
+                ? "bg-yellow-100/80 text-yellow-800 hover:bg-yellow-200/80 dark:bg-yellow-900/40 dark:text-yellow-200"
+                : "text-yellow-600 border-yellow-200 hover:bg-yellow-50 dark:border-yellow-900/50 dark:hover:bg-yellow-900/20",
             )}
           >
             <AlertCircle size={16} />
@@ -592,8 +629,8 @@ export default function PatientList() {
                 className={cn(
                   "ml-0.5 text-[10px] px-1.5 py-0.5 rounded-full",
                   filterType === "warning"
-                    ? "bg-amber-800/10 text-amber-800 dark:bg-amber-100/10 dark:text-amber-200"
-                    : "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+                    ? "bg-yellow-800/10 text-yellow-800 dark:bg-yellow-100/10 dark:text-yellow-200"
+                    : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300",
                 )}
               >
                 {counts.warning}
