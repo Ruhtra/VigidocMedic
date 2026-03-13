@@ -2,17 +2,18 @@
 // Hook customizado para buscar lista de pacientes via TanStack Query
 
 import { useQuery } from '@tanstack/react-query';
-import { patientsData } from '@/data/mockPatients';
 import type { Patient } from '@/types/patient';
 
 /**
- * Simula uma chamada de API com latência de 500ms.
- * Futuramente será substituída por uma chamada real.
+ * Busca de lista de pacientes na API.
  */
-const fetchPatients = (): Promise<Patient[]> =>
-  new Promise((resolve) => {
-    setTimeout(() => resolve(patientsData), 500);
-  });
+const fetchPatients = async (): Promise<Patient[]> => {
+  const res = await fetch('/api/patients');
+  if (!res.ok) {
+    throw new Error('Falha ao carregar lista de pacientes');
+  }
+  return res.json();
+};
 
 /**
  * Hook para buscar e cachear a lista de pacientes.

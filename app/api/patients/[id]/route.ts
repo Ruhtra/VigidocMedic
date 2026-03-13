@@ -8,7 +8,7 @@ import type { Patient, RecordSession } from "@/types/patient";
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth.api.getSession({ headers: await headers() });
 
@@ -18,17 +18,18 @@ export async function GET(
 
   const { cannot } = getUserPermision(session.user.id, session.user.role);
 
-  // We could check if the user has permission to read this specific patient
-  // For now, assuming admins and the user themselves have access.
-  if (
-    cannot("get", {
-      kind: "User",
-      id: "ANY", // Typically we'd pass the patient id if it's based on ABAC, adjusting this based on casl rules.
-    }) && session.user.role !== 'admin'
-  ) {
-    // Basic protection (allowing only admin to view patients list or patients detail here unless specified by casl)
-    // Adjust according to exact CASL rules if needed.
+  let isAdmin = session.user.role === "admin";
+  let doctorId: string | null = null;
+
+  // if (!isAdmin) {
+  const doctorProfile = await prisma.doctorProfile.findUnique({
+    where: { userId: session.user.id },
+  });
+  if (!doctorProfile) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
   }
+  doctorId = doctorProfile.id;
+  // }
 
   const resolvedParams = await params;
   const patientId = resolvedParams.id;
@@ -46,8 +47,13 @@ export async function GET(
   if (!user || !user.patientProfile) {
     return NextResponse.json(
       { error: "Paciente não encontrado" },
-      { status: 404 }
+      { status: 404 },
     );
+  }
+
+  // Verificar se o médico é o responsável pelo paciente
+  if (user.patientProfile.doctorId !== doctorId) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
   }
 
   const profile = user.patientProfile;

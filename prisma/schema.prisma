@@ -96,6 +96,9 @@ model PatientProfile {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
+  doctorId String?
+  doctor   DoctorProfile? @relation(fields: [doctorId], references: [id])
+
   @@map("patient_profile")
 }
 
@@ -108,6 +111,8 @@ model DoctorProfile {
   bio       String?  @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  patients PatientProfile[]
 
   @@map("doctor_profile")
 }
