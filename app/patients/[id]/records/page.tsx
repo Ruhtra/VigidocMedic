@@ -13,6 +13,7 @@ import {
 import { QueryProvider } from "@/lib/query-provider";
 import Navbar from "@/components/Navbar";
 import PatientRecords from "@/components/admin/PatientRecords";
+import { usePatientById } from "@/hooks/usePatientById";
 import { cn } from "@/lib/utils";
 
 export default function PatientRecordsPage() {
@@ -36,11 +37,20 @@ export default function PatientRecordsPage() {
             )}
           >
             <div className="mx-auto max-w-6xl py-6">
-              <PatientRecords patientId={params.id} />
+              <PatientRecordsWrapper patientId={params.id} />
             </div>
           </main>
         </NavigationProvider>
       </ThemeProvider>
     </QueryProvider>
   );
+}
+
+function PatientRecordsWrapper({ patientId }: { patientId: string }) {
+  const { data: patient, isLoading, isError } = usePatientById(patientId);
+
+  if (isLoading) return <div>Carregando registros...</div>;
+  if (isError || !patient) return <div>Paciente não encontrado.</div>;
+
+  return <PatientRecords patient={patient} />;
 }

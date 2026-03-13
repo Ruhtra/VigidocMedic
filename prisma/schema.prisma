@@ -89,6 +89,10 @@ model PatientProfile {
   phone            String?
   emergencyContact String?
   medicalNotes     String?   @db.Text
+  diseaseType      String?
+  cid              String?
+  ecog             Int?
+  diagnosis        String?   @db.Text
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
