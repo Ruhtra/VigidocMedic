@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
+import PatientDialog from "@/components/admin/PatientDialog";
 import {
   Heart,
   Activity,
@@ -196,7 +197,15 @@ function VitalBadgeSmall({ vital }: { vital: VitalValue }) {
    SUB-COMPONENT: PatientCard
    ========================================================================== */
 
-function PatientCard({ patient, index }: { patient: Patient; index: number }) {
+function PatientCard({
+  patient,
+  index,
+  onOpenSheet,
+}: {
+  patient: Patient;
+  index: number;
+  onOpenSheet: (patient: Patient) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   const worstStatus = getWorstStatus(patient.lastRecord);
   const hasHistory = patient.dailyHistory.length > 0;
@@ -274,9 +283,7 @@ function PatientCard({ patient, index }: { patient: Patient; index: number }) {
               <Button
                 size="sm"
                 className="h-8 text-xs px-3 shadow-sm flex-1 lg:flex-none"
-                onClick={() => {
-                  console.log(`Prontuário: ${patient.id}`);
-                }}
+                onClick={() => onOpenSheet(patient)}
               >
                 <FileText size={14} className="mr-1.5" />
                 Prontuário
@@ -419,6 +426,15 @@ export default function PatientList() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<FilterType>("all");
+
+  // Estado do Sheet de prontuário
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const handleOpenSheet = useCallback((patient: Patient) => {
+    setSelectedPatient(patient);
+    setSheetOpen(true);
+  }, []);
 
   // Handlers memoizados
   const handleFilterClick = useCallback((type: FilterType) => {
@@ -605,7 +621,7 @@ export default function PatientList() {
             className="space-y-4"
           >
             {filteredPatients.map((patient, index) => (
-              <PatientCard key={patient.id} patient={patient} index={index} />
+              <PatientCard key={patient.id} patient={patient} index={index} onOpenSheet={handleOpenSheet} />
             ))}
           </motion.div>
         ) : (
@@ -629,6 +645,13 @@ export default function PatientList() {
           </div>
         )}
       </div>
+
+      {/* Dialog de visão rápida */}
+      <PatientDialog
+        patient={selectedPatient}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+      />
     </div>
   );
 }

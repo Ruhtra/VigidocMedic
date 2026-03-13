@@ -7,10 +7,29 @@ import type {
   RecordSession,
   VitalValue,
   VitalStatus,
+  EcogScore,
 } from '@/types/patient';
 
 // Seed fixa para resultados determinísticos entre reloads
 faker.seed(42);
+
+/* ==========================================================================
+   CONSTANTS – tipos de câncer com CID-10
+   ========================================================================== */
+
+/** Mapeamento realista de tipos de câncer com seus respectivos CIDs */
+const CANCER_TYPES = [
+  { type: 'Câncer de Pulmão', cid: 'C34.9', diagnosis: 'Carcinoma de células não pequenas em estágio avançado' },
+  { type: 'Câncer de Mama', cid: 'C50.9', diagnosis: 'Carcinoma ductal invasivo com metástase linfonodal' },
+  { type: 'Câncer Colorretal', cid: 'C18.9', diagnosis: 'Adenocarcinoma de cólon com envolvimento hepático' },
+  { type: 'Leucemia Mieloide Aguda', cid: 'C92.0', diagnosis: 'LMA com mutação FLT3 positiva' },
+  { type: 'Linfoma de Hodgkin', cid: 'C81.9', diagnosis: 'Linfoma de Hodgkin clássico, esclerose nodular' },
+  { type: 'Câncer de Próstata', cid: 'C61', diagnosis: 'Adenocarcinoma prostático Gleason 7 (4+3)' },
+  { type: 'Câncer Gástrico', cid: 'C16.9', diagnosis: 'Adenocarcinoma gástrico difuso tipo Lauren' },
+  { type: 'Melanoma', cid: 'C43.9', diagnosis: 'Melanoma cutâneo extensivo superficial, Breslow 2.1mm' },
+  { type: 'Câncer de Pâncreas', cid: 'C25.9', diagnosis: 'Adenocarcinoma pancreático ductal localmente avançado' },
+  { type: 'Câncer de Bexiga', cid: 'C67.9', diagnosis: 'Carcinoma urotelial músculo-invasivo' },
+] as const;
 
 /* ==========================================================================
    HELPERS – geração de sinais vitais realistas
@@ -110,7 +129,8 @@ function generateSession(date: Date): RecordSession {
    ========================================================================== */
 
 function generatePatient(): Patient {
-  const historyCount = faker.number.int({ min: 0, max: 5 });
+  // Mais registros históricos (até 30) para alimentar a página de registros
+  const historyCount = faker.number.int({ min: 5, max: 30 });
   const today = new Date();
 
   // Gera histórico diário com datas retroativas
@@ -123,12 +143,39 @@ function generatePatient(): Patient {
     },
   );
 
+  // Dados clínicos — escolhe um tipo de câncer aleatório
+  const cancer = faker.helpers.arrayElement(CANCER_TYPES);
+  const ecog = faker.number.int({ min: 0, max: 4 }) as EcogScore;
+
+  // Data de nascimento consistente com a idade gerada
+  const age = faker.number.int({ min: 18, max: 92 });
+  const dob = new Date(today);
+  dob.setFullYear(dob.getFullYear() - age);
+  dob.setMonth(faker.number.int({ min: 0, max: 11 }));
+  dob.setDate(faker.number.int({ min: 1, max: 28 }));
+
+  // Data de admissão (entre 1 e 365 dias atrás)
+  const admissionDate = new Date(today);
+  admissionDate.setDate(admissionDate.getDate() - faker.number.int({ min: 1, max: 365 }));
+
   return {
     id: faker.string.uuid(),
     name: faker.person.fullName(),
-    age: faker.number.int({ min: 18, max: 92 }),
+    age,
     phone: faker.phone.number({ style: 'national' }),
     avatarUrl: null, // sem avatar externo; usaremos iniciais
+
+    // Dados pessoais expandidos
+    dateOfBirth: dob.toISOString(),
+    admissionDate: admissionDate.toISOString(),
+
+    // Dados clínicos (oncologia)
+    diseaseType: cancer.type,
+    cid: cancer.cid,
+    ecog,
+    diagnosis: cancer.diagnosis,
+
+    // Registros
     lastRecord: generateSession(today),
     dailyHistory,
   };
@@ -136,3 +183,4 @@ function generatePatient(): Patient {
 
 /** Lista de 8 pacientes mockados */
 export const patientsData: Patient[] = Array.from({ length: 8 }, generatePatient);
+

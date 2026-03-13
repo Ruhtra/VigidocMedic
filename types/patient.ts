@@ -23,6 +23,9 @@ export interface RecordSession {
   pain: VitalValue;
 }
 
+/** Score de performance ECOG (0 = assintomático, 4 = acamado) */
+export type EcogScore = 0 | 1 | 2 | 3 | 4;
+
 /** Paciente completo */
 export interface Patient {
   id: string;
@@ -30,6 +33,18 @@ export interface Patient {
   age: number;
   phone: string;
   avatarUrl: string | null;
+
+  // Dados pessoais expandidos
+  dateOfBirth: string; // ISO date string
+  admissionDate: string; // ISO date string
+
+  // Dados clínicos (oncologia)
+  diseaseType: string; // ex: "Câncer de Pulmão"
+  cid: string; // código CID-10 (ex: "C34.9")
+  ecog: EcogScore; // score ECOG 0–4
+  diagnosis: string; // diagnóstico resumido
+
+  // Registros de sinais vitais
   lastRecord: RecordSession;
   dailyHistory: RecordSession[];
 }
