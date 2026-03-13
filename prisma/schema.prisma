@@ -19,6 +19,11 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
+  // Profiles
+  patientProfile PatientProfile?
+  doctorProfile  DoctorProfile?
+  vitalRecords   VitalRecord[]
+
   @@unique([email])
   @@map("user")
 }
@@ -74,4 +79,52 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model PatientProfile {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  birthDate        DateTime? @db.Date
+  phone            String?
+  emergencyContact String?
+  medicalNotes     String?   @db.Text
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("patient_profile")
+}
+
+model DoctorProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  crm       String   @unique
+  specialty String?
+  bio       String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("doctor_profile")
+}
+
+model VitalRecord {
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recordedAt       DateTime
+  systolic         Int?
+  diastolic        Int?
+  heartRate        Int?
+  temperature      Float?
+  oxygenSaturation Int?
+  weight           Float?
+  painLevel        Int?
+  notes            String?  @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([userId])
+  @@index([recordedAt])
+  @@map("vital_record")
 }
