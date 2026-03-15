@@ -17,4 +17,10 @@ export const auth = betterAuth({
       },
     },
   },
+  trustedOrigins: process.env.TRUSTED_ORIGINS
+    ? process.env.TRUSTED_ORIGINS.split(",")
+    : [],
+  advanced: {
+    trustedProxyHeaders: true,
+  },
 });
