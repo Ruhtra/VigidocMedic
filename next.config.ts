@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
           { key: "Access-Control-Allow-Credentials", value: "true" },
           {
             key: "Access-Control-Allow-Origin",
-            value: "https://app.vigidoc.org",
+            value: "https://localhost:8080",
           },
           {
             key: "Access-Control-Allow-Methods",

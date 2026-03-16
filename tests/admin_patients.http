@@ -1,0 +1,23 @@
+@baseUrl = http://localhost:3000
+
+### @name login
+# Efetua login para obter o cookie de sessão
+POST {{baseUrl}}/api/auth/sign-in/email
+Content-Type: application/json
+
+{
+    "email": "kawanarthurskate@gmail.com",
+    "password": "ksf062213"
+}
+
+### @name getPatients
+# Busca a lista de pacientes usando o cookie obtido no login
+# O REST Client gerencia os cookies automaticamente, mas podemos explicitar o uso do token se necessário
+GET {{baseUrl}}/api/admin/patients
+Content-Type: application/json
+Authorization: Bearer TWl6s724BfMflOZiSQYseUPrKCMwZbrW
+
+### @name getPatientsFiltered
+# Busca a lista de pacientes com filtros de data
+GET {{baseUrl}}/api/admin/patients?dateFrom=2024-01-01&dateTo=2024-12-31
+Content-Type: application/json

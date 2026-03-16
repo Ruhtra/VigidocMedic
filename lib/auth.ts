@@ -9,6 +9,9 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  session: {
+    strategy: "jwt",
+  },
   user: {
     additionalFields: {
       role: {

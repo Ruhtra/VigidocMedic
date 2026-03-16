@@ -16,7 +16,9 @@ export async function proxy(request: NextRequest) {
   });
 
   // Extract the role safely if the session exists
+  // @ts-ignore
   const role = session?.user?.role as "admin" | "user" | undefined;
+  const userId = session?.user?.id;
 
   const { nextUrl } = request;
   const isLoggedIn = !!session;
@@ -50,13 +52,19 @@ export async function proxy(request: NextRequest) {
   }
 
   if (isUserRoute && role !== "user") {
-    // If an admin tries to access /user it may be allowed or not.
-    // In strict RBAC, admins stay out of user unless explicitly permitted.
-    // If you want admins to also see /user, you could do: role !== "user" && role !== "admin"
     return NextResponse.redirect(new URL("/not-found", nextUrl));
   }
 
-  return NextResponse.next();
+  // Pass session data to headers to avoid redundant auth hits in routes
+  const requestHeaders = new Headers(request.headers);
+  if (userId) requestHeaders.set("x-user-id", userId);
+  if (role) requestHeaders.set("x-user-role", role);
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    }
+  });
 }
 
 export const config = {
