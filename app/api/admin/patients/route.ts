@@ -1,58 +1,30 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getAuthContext } from "@/lib/casl/utils/getUserPermission";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserPermision } from "@/lib/casl/utils/getUserPermission";
 
 export async function GET(req: Request) {
   console.time("admin-patients:auth");
-  // Try to get from headers first (injected by proxy/middleware)
-  const headerUserId = (await headers()).get("x-user-id");
-  const headerUserRole = (await headers()).get("x-user-role");
+  const authContext = await getAuthContext();
 
-  let sessionData: { user: { id: string; role: string } } | null = null;
-
-  if (headerUserId && headerUserRole) {
-    sessionData = {
-      user: {
-        id: headerUserId,
-        role: headerUserRole,
-      },
-    };
-  } else {
-    // Fallback if proxy didn't run or headers missing
-    const session = await auth.api.getSession({ headers: await headers() });
-    if (session) {
-      sessionData = {
-        user: {
-          id: session.user.id,
-          // @ts-ignore
-          role: session.user.role || "user",
-        },
-      };
-    }
-  }
-  console.timeEnd("admin-patients:auth");
-
-  if (!sessionData) {
+  if (!authContext) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
-  const session = sessionData;
+  const { user, cannot } = authContext;
+  if (
+    cannot("get", {
+      kind: "User",
+      id: "ANY",
+    }) &&
+    user.role !== "admin"
+  ) {
+    // Basic protection (allowing only admin to view patients list or patients detail here unless specified by casl)
+    return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
+  }
+
+  console.timeEnd("admin-patients:auth");
 
   try {
-    const { cannot } = getUserPermision(session.user.id, session.user.role);
-    if (
-      cannot("get", {
-        kind: "User",
-        id: "ANY",
-      }) &&
-      session.user.role !== "admin"
-    ) {
-      // Basic protection (allowing only admin to view patients list or patients detail here unless specified by casl)
-      return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
-    }
-
     const { searchParams } = new URL(req.url);
     const dateFrom = searchParams.get("dateFrom");
     const dateTo = searchParams.get("dateTo");

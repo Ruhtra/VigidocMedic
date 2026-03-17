@@ -1,25 +1,23 @@
-import { auth } from "@/lib/auth";
-import { getUserPermision } from "@/lib/casl/utils/getUserPermission";
-import { headers } from "next/headers";
+import { getAuthContext } from "@/lib/casl/utils/getUserPermission";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const authContext = await getAuthContext();
 
-  if (!session) {
+  if (!authContext) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
-  const { cannot } = getUserPermision(session.user.id, session.user.role);
+  const { user, cannot } = authContext;
 
   if (
     cannot("get", {
       kind: "User",
-      id: session.user.id,
+      id: user.id,
     })
   ) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
   }
 
-  return NextResponse.json(session.user);
+  return NextResponse.json(user);
 }

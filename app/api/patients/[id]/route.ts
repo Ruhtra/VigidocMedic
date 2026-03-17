@@ -1,6 +1,4 @@
-import { auth } from "@/lib/auth";
-import { getUserPermision } from "@/lib/casl/utils/getUserPermission";
-import { headers } from "next/headers";
+import { getAuthContext } from "@/lib/casl/utils/getUserPermission";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { 
@@ -17,31 +15,28 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const authContext = await getAuthContext();
 
-  if (!session) {
+  if (!authContext) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
-  const { cannot } = getUserPermision(session.user.id, session.user.role);
+  const { user } = authContext;
 
-  let isAdmin = session.user.role === "admin";
   let doctorId: string | null = null;
 
-  // if (!isAdmin) {
   const doctorProfile = await prisma.doctorProfile.findUnique({
-    where: { userId: session.user.id },
+    where: { userId: user.id },
   });
   if (!doctorProfile) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
   }
   doctorId = doctorProfile.id;
-  // }
 
   const resolvedParams = await params;
   const patientId = resolvedParams.id;
 
-  const user = await prisma.user.findUnique({
+  const patient = await prisma.user.findUnique({
     where: { id: patientId },
     include: {
       patientProfile: true,
@@ -51,7 +46,7 @@ export async function GET(
     },
   });
 
-  if (!user || !user.patientProfile) {
+  if (!patient || !patient.patientProfile) {
     return NextResponse.json(
       { error: "Paciente não encontrado" },
       { status: 404 },
@@ -59,12 +54,12 @@ export async function GET(
   }
 
   // Verificar se o médico é o responsável pelo paciente
-  if (user.patientProfile.doctorId !== doctorId) {
+  if (patient.patientProfile.doctorId !== doctorId) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
   }
 
-  const profile = user.patientProfile;
-  const vitalRecords = user.vitalRecords;
+  const profile = patient.patientProfile;
+  const vitalRecords = patient.vitalRecords;
 
   // Calculate age
   let age = 0;
@@ -141,11 +136,11 @@ export async function GET(
   const dailyHistory = sessions.length > 1 ? sessions.slice(1) : [];
 
   const patientResponse: Patient = {
-    id: user.id,
-    name: user.name,
+    id: patient.id,
+    name: patient.name,
     age,
     phone: profile.phone ?? "Não informado",
-    avatarUrl: user.image ?? null,
+    avatarUrl: patient.image ?? null,
     dateOfBirth: profile.birthDate
       ? profile.birthDate.toISOString()
       : new Date().toISOString(),

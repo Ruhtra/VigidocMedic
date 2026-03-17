@@ -1,6 +1,4 @@
-import { auth } from "@/lib/auth";
-import { getUserPermision } from "@/lib/casl/utils/getUserPermission";
-import { headers } from "next/headers";
+import { getAuthContext } from "@/lib/casl/utils/getUserPermission";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { 
@@ -14,13 +12,13 @@ import {
 import type { Patient, RecordSession } from "@/types/patient";
 
 export async function GET(req: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const authContext = await getAuthContext();
 
-  if (!session) {
+  if (!authContext) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
-  const { cannot } = getUserPermision(session.user.id, session.user.role);
+  const { user, cannot } = authContext;
 
   // Exemplo de verificação CASL para listagem
   if (
@@ -28,7 +26,7 @@ export async function GET(req: Request) {
       kind: "User",
       id: "ANY",
     }) &&
-    session.user.role !== "admin"
+    user.role !== "admin"
   ) {
     // Basic protection (allowing only admin to view patients list or patients detail here unless specified by casl)
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
@@ -44,7 +42,7 @@ export async function GET(req: Request) {
     // Filtro por Médico
     // if (session.user.role !== "admin") {
     const doctorProfile = await prisma.doctorProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
     });
 
     if (!doctorProfile) {
