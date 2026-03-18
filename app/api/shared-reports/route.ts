@@ -2,17 +2,23 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthContext } from "@/lib/casl/utils/getUserPermission";
 
 export async function GET(req: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  const authContext = await getAuthContext();
+
+  if (!authContext) {
+    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  }
+
+  const { user, cannot } = authContext;
 
   try {
     const reports = await prisma.sharedReport.findMany({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       orderBy: { createdAt: "desc" },
     });
-    const mapped = reports.map(r => ({
+    const mapped = reports.map((r) => ({
       id: r.id,
       share_code: r.shareCode,
       title: r.title,
@@ -28,23 +34,31 @@ export async function GET(req: Request) {
       expires_at: r.expiresAt,
       views_count: r.viewsCount,
       is_active: r.isActive,
-      created_at: r.createdAt
+      created_at: r.createdAt,
     }));
     return NextResponse.json(mapped);
   } catch (error) {
-    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Erro interno do servidor" },
+      { status: 500 },
+    );
   }
 }
 
 export async function POST(req: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  const authContext = await getAuthContext();
+
+  if (!authContext) {
+    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  }
+
+  const { user, cannot } = authContext;
 
   try {
     const body = await req.json();
     const report = await prisma.sharedReport.create({
       data: {
-        userId: session.user.id,
+        userId: user.id,
         shareCode: body.share_code,
         title: body.title,
         includeBloodPressure: body.include_blood_pressure,
@@ -61,6 +75,9 @@ export async function POST(req: Request) {
     });
     return NextResponse.json({ success: true, report }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Erro interno do servidor" },
+      { status: 500 },
+    );
   }
 }

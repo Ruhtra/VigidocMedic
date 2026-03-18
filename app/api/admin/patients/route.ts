@@ -51,6 +51,7 @@ export async function GET(req: Request) {
       where: whereProfile,
       take: 50, // Limita a 50 perfis por vez
       orderBy: { createdAt: "desc" },
+      relationLoadStrategy: "join",
       select: {
         id: true,
         userId: true,

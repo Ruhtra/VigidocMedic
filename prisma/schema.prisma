@@ -1,11 +1,11 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client"
+  output          = "../generated"
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
 model User {
@@ -102,6 +102,7 @@ model PatientProfile {
   doctorId String?
   doctor   DoctorProfile? @relation(fields: [doctorId], references: [id])
 
+  @@index([doctorId])
   @@map("patient_profile")
 }
 

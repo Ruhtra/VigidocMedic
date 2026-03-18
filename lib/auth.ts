@@ -10,7 +10,10 @@ export const auth = betterAuth({
     enabled: true,
   },
   session: {
-    strategy: "jwt",
+    cookieCache: {
+      enabled: true,
+      strategy: "jwt",
+    },
   },
   user: {
     additionalFields: {

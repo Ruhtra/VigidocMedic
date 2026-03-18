@@ -1,0 +1,15 @@
+@baseUrl = http://localhost:3000
+
+### @name login
+POST {{baseUrl}}/api/auth/sign-in/email
+Content-Type: application/json
+
+{
+    "email": "kawanarthurskate@gmail.com",
+    "password": "ksf062213"
+}
+
+### @name getPatients
+GET {{baseUrl}}/api/patients
+Content-Type: application/json
+Authorization: Bearer TWl6s724BfMflOZiSQYseUPrKCMwZbrW

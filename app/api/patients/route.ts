@@ -1,13 +1,13 @@
 import { getAuthContext } from "@/lib/casl/utils/getUserPermission";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { 
-  resolveHeartRate, 
-  resolveO2Saturation, 
-  resolveTemperature, 
-  resolveSystolicPressure, 
+import {
+  resolveHeartRate,
+  resolveO2Saturation,
+  resolveTemperature,
+  resolveSystolicPressure,
   resolvePain,
-  resolveGeneric 
+  resolveGeneric,
 } from "@/lib/utils/vitals";
 import type { Patient, RecordSession } from "@/types/patient";
 
@@ -33,44 +33,61 @@ export async function GET(req: Request) {
   }
 
   try {
-    let whereClause: any = {
-      patientProfile: {
-        isNot: null,
-      },
-    };
-
     // Filtro por Médico
-    // if (session.user.role !== "admin") {
-    const doctorProfile = await prisma.doctorProfile.findUnique({
-      where: { userId: user.id },
-    });
+    // Se o doctorId já vem no contexto (via proxy), usamos direto!
 
-    if (!doctorProfile) {
-      // Se for um usuário comum sem perfil de médico, não vê ninguém na lista de gestão
+    // const doctorId = user.doctorId;
+
+    if (false) {
+      // Se não for um médico (não tem doctorProfile), não vê ninguém na lista de gestão
       return NextResponse.json([]);
     }
 
-    whereClause = {
-      patientProfile: {
-        doctorId: doctorProfile.id,
-      },
-    };
-    // }
-
+    console.time("patients:query");
     // Buscar todos os usuários que têm patientProfile, junto com seu último vitalRecord
     const users = await prisma.user.findMany({
-      where: whereClause,
-      include: {
-        patientProfile: true,
+      where: {
+        patientProfile: {
+          doctorId: "",
+        },
+      },
+      take: 50,
+      relationLoadStrategy: "join",
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        patientProfile: {
+          select: {
+            phone: true,
+            birthDate: true,
+            diseaseType: true,
+            cid: true,
+            ecog: true,
+            diagnosis: true,
+            createdAt: true,
+          },
+        },
         vitalRecords: {
           orderBy: { recordedAt: "desc" },
           take: 1, // Pegamos apenas o mais recente para a lista
+          select: {
+            recordedAt: true,
+            heartRate: true,
+            systolic: true,
+            diastolic: true,
+            oxygenSaturation: true,
+            temperature: true,
+            weight: true,
+            painLevel: true,
+          },
         },
       },
       orderBy: {
         name: "asc",
       },
     });
+    console.timeEnd("patients:query");
 
     const mapRecordToSession = (record: any): RecordSession => {
       return {
@@ -137,9 +154,10 @@ export async function GET(req: Request) {
       pain: { label: "Dor", value: "-", unit: "/10", status: "normal" },
     };
 
-    const patientsList: Patient[] = users.map((user) => {
-      const profile = user.patientProfile!;
-      const vitalRecords = user.vitalRecords;
+    console.time("patients:mapping");
+    const patientsList: Patient[] = users.map((u) => {
+      const profile = u.patientProfile!;
+      const vitalRecords = u.vitalRecords;
 
       // Calcular idade
       let age = 0;
@@ -155,11 +173,11 @@ export async function GET(req: Request) {
           : defaultSession;
 
       return {
-        id: user.id,
-        name: user.name,
+        id: u.id,
+        name: u.name,
         age,
         phone: profile.phone ?? "Não informado",
-        avatarUrl: user.image ?? null,
+        avatarUrl: u.image ?? null,
         dateOfBirth: profile.birthDate
           ? profile.birthDate.toISOString()
           : new Date().toISOString(),
@@ -172,6 +190,7 @@ export async function GET(req: Request) {
         dailyHistory: [], // Na lista não precisamos do histórico completo, apenas do lastRecord
       };
     });
+    console.timeEnd("patients:mapping");
 
     return NextResponse.json(patientsList);
   } catch (error) {

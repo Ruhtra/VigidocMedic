@@ -2,13 +2,19 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthContext } from "@/lib/casl/utils/getUserPermission";
 
-export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth.api.getSession({ headers: await headers() });
+export async function PUT(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const authContext = await getAuthContext();
 
-  if (!session) {
+  if (!authContext) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
+
+  const { user, cannot } = authContext;
 
   try {
     const resolvedParams = await params;
@@ -17,7 +23,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const reminder = await prisma.reminder.updateMany({
       where: {
         id: resolvedParams.id,
-        userId: session.user.id, // assegura segurança
+        userId: user.id, // assegura segurança
       },
       data: {
         enabled: body.enabled,
@@ -31,25 +37,33 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Erro ao atualizar reminder:", error);
-    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Erro interno do servidor" },
+      { status: 500 },
+    );
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth.api.getSession({ headers: await headers() });
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const authContext = await getAuthContext();
 
-  if (!session) {
+  if (!authContext) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
+  const { user, cannot } = authContext;
+
   try {
     const resolvedParams = await params;
-    
+
     // Verifica primeiro se pertence ao usuário ou deleta direto via where duplo
     const reminder = await prisma.reminder.deleteMany({
       where: {
         id: resolvedParams.id,
-        userId: session.user.id,
+        userId: user.id,
       },
     });
 
@@ -60,6 +74,9 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Erro ao deletar reminder:", error);
-    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Erro interno do servidor" },
+      { status: 500 },
+    );
   }
 }
