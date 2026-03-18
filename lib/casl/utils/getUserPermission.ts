@@ -8,11 +8,17 @@ export async function getAuthContext() {
   const head = await headers();
   const headerUserId = head.get("x-user-id");
   const headerUserRole = head.get("x-user-role");
+  const headerDoctorId = head.get("x-doctor-id");
 
-  let userContext: { id: string; role: string } | null = null;
+  let userContext: { id: string; role: string; doctorId?: string } | null =
+    null;
 
-  if (headerUserId && headerUserRole) {
-    userContext = { id: headerUserId, role: headerUserRole };
+  if (headerUserId && headerUserRole && headerDoctorId) {
+    userContext = {
+      id: headerUserId,
+      role: headerUserRole,
+      doctorId: headerDoctorId,
+    };
   } else {
     const session = await auth.api.getSession({ headers: head });
     if (session) {
@@ -20,6 +26,8 @@ export async function getAuthContext() {
         id: session.user.id,
         // @ts-ignore
         role: session.user.role || "user",
+        // @ts-ignore
+        doctorId: session.user.doctorId,
       };
     }
   }

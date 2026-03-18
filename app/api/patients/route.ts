@@ -22,11 +22,12 @@ export async function GET(req: Request) {
 
   // Exemplo de verificação CASL para listagem
   if (
-    cannot("get", {
+    (cannot("get", {
       kind: "User",
       id: "ANY",
     }) &&
-    user.role !== "admin"
+      user.role !== "admin") ||
+    user.doctorId == null
   ) {
     // Basic protection (allowing only admin to view patients list or patients detail here unless specified by casl)
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
@@ -48,7 +49,7 @@ export async function GET(req: Request) {
     const users = await prisma.user.findMany({
       where: {
         patientProfile: {
-          doctorId: "",
+          doctorId: user.doctorId,
         },
       },
       take: 50,

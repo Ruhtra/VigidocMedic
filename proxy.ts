@@ -62,21 +62,23 @@ export async function proxy(request: NextRequest) {
 
   // If role is medic/user (or whichever role handles patients) and we can find a doctor profile, inject it
   // This is a candidate for caching in a real production env
-  if (userId && role !== "admin") {
-     const { prisma } = await import("@/lib/prisma");
-     const doctorProfile = await prisma.doctorProfile.findUnique({
-       where: { userId: userId },
-       select: { id: true }
-     });
-     if (doctorProfile) {
-       requestHeaders.set("x-doctor-id", doctorProfile.id);
-     }
+
+  if (userId && role === "admin") {
+    const { prisma } = await import("@/lib/prisma");
+    const doctorProfile = await prisma.doctorProfile.findUnique({
+      where: { userId: userId },
+      select: { id: true },
+    });
+
+    if (doctorProfile) {
+      requestHeaders.set("x-doctor-id", doctorProfile.id);
+    }
   }
 
   return NextResponse.next({
     request: {
       headers: requestHeaders,
-    }
+    },
   });
 }
 
