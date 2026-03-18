@@ -20,7 +20,22 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useThemeContext, useNavigation } from "@/lib/contexts";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { useSession } from "@/lib/auth-client";
+import {
+  MAIN_NAV_ITEMS,
+  USER_NAV_ITEMS,
+  APP_ROUTES,
+  type NavItem,
+} from "@/config/navigation";
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+import Link from "next/link";
 
 /* ==========================================================================
    TYPES
@@ -31,13 +46,7 @@ interface NavbarProps {
   setIsMobileMenuOpen: (open: boolean) => void;
 }
 
-interface NavItem {
-  id: string;
-  label: string;
-  icon: React.ElementType;
-}
-
-interface Notification {
+interface AppNotification {
   id: number;
   title: string;
   description: string;
@@ -45,29 +54,8 @@ interface Notification {
   unread: boolean;
 }
 
-/* ==========================================================================
-   CONSTANTS
-   ========================================================================== */
-
-/** Primary navigation items shown in top bar and drawer */
-const NAV_ITEMS: NavItem[] = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "patients", label: "Pacientes", icon: Users },
-  { id: "triage", label: "Triagem", icon: ShieldAlert },
-  { id: "reports", label: "Relatórios", icon: FileText },
-];
-
-/** Bottom bar items (mobile) – the center "scan" slot is handled separately */
-const BOTTOM_NAV_ITEMS: NavItem[] = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "patients", label: "Pacientes", icon: Users },
-  // scan FAB is inserted in the middle manually
-  { id: "triage", label: "Triagem", icon: ShieldAlert },
-  { id: "menu", label: "Menu", icon: Menu },
-];
-
-/** Mock notifications */
-const MOCK_NOTIFICATIONS: Notification[] = [
+/** Notifications are currently mock data */
+const MOCK_NOTIFICATIONS: AppNotification[] = [
   {
     id: 1,
     title: "Alerta de Paciente",
@@ -137,9 +125,13 @@ export default function Navbar({
   isMobileMenuOpen,
   setIsMobileMenuOpen,
 }: NavbarProps) {
+  const { data: session, isPending } = useSession();
+  const user = session?.user;
+
   const { theme, toggle } = useThemeContext();
   const { currentPage, setCurrentPage } = useNavigation();
   const router = useRouter();
+  const pathname = usePathname();
 
   // Dropdown states
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -194,17 +186,20 @@ export default function Navbar({
 
   /* ---- Navigation handler ---- */
   const navigateTo = useCallback(
-    (page: string) => {
+    (pageId: string) => {
       setIsMobileMenuOpen(false);
       setIsNotifOpen(false);
       setIsProfileOpen(false);
-      
-      if (page === "patients") {
-        router.push("/patients");
-      } else if (page === "dashboard") {
-        router.push("/admin");
+
+      const item = [...MAIN_NAV_ITEMS, ...USER_NAV_ITEMS].find(
+        (i) => i.id === pageId,
+      );
+      if (item && item.href !== "#") {
+        router.push(item.href);
+      } else if (pageId === "scan") {
+        router.push(APP_ROUTES.SCAN);
       } else {
-        setCurrentPage(page);
+        setCurrentPage(pageId);
       }
     },
     [setCurrentPage, setIsMobileMenuOpen, router],
@@ -236,30 +231,32 @@ export default function Navbar({
         </div>
 
         {/* Nav links */}
-        <nav className="flex items-center gap-1">
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentPage === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => navigateTo(item.id)}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium",
-                  "transition-all duration-200 cursor-pointer",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
-                  isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-                aria-current={isActive ? "page" : undefined}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
+        <NavigationMenu className="flex-1 justify-center max-w-none">
+          <NavigationMenuList className="gap-1">
+            {MAIN_NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <NavigationMenuItem key={item.id}>
+                  <NavigationMenuLink asChild active={isActive}>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium",
+                        "transition-all duration-200",
+                        !isActive &&
+                          "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {item.label}
+                    </Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              );
+            })}
+          </NavigationMenuList>
+        </NavigationMenu>
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
@@ -292,32 +289,48 @@ export default function Navbar({
 
           {/* Profile */}
           <div ref={profileRef} className="relative">
-            <button
-              onClick={() => {
-                setIsProfileOpen((v) => !v);
-                setIsNotifOpen(false);
-              }}
-              className={cn(
-                "flex items-center gap-2 p-1.5 pr-3 rounded-lg cursor-pointer",
-                "text-muted-foreground hover:text-foreground hover:bg-muted",
-                "transition-all duration-200",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
-              )}
-              aria-label="Menu do perfil"
-            >
-              <div className="h-8 w-8 rounded-full bg-primary/15 flex items-center justify-center">
-                <User className="h-4 w-4 text-primary" />
+            {isPending ? (
+              <div className="flex items-center gap-2 p-1.5 pr-3 rounded-lg border border-transparent">
+                <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
+                <div className="h-4 w-20 bg-muted rounded animate-pulse hidden xl:inline" />
               </div>
-              <span className="text-sm font-medium text-foreground hidden xl:inline">
-                Dr. Admin
-              </span>
-            </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setIsProfileOpen((v) => !v);
+                  setIsNotifOpen(false);
+                }}
+                className={cn(
+                  "flex items-center gap-2 p-1.5 pr-3 rounded-lg cursor-pointer",
+                  "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  "transition-all duration-200",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+                )}
+                aria-label="Menu do perfil"
+              >
+                <div className="h-8 w-8 rounded-full bg-primary/15 flex items-center justify-center overflow-hidden">
+                  {user?.image ? (
+                    <img
+                      src={user.image}
+                      alt={user.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-4 w-4 text-primary" />
+                  )}
+                </div>
+                <span className="text-sm font-medium text-foreground hidden xl:inline">
+                  {user?.name || "Usuário"}
+                </span>
+              </button>
+            )}
             <AnimatePresence>
               {isProfileOpen && (
                 <ProfileDropdown
                   theme={theme}
                   toggle={toggle}
                   navigateTo={navigateTo}
+                  user={user}
                 />
               )}
             </AnimatePresence>
@@ -379,29 +392,44 @@ export default function Navbar({
 
           {/* Profile avatar */}
           <div ref={profileRef} className="relative">
-            <button
-              onClick={() => {
-                setIsProfileOpen((v) => !v);
-                setIsNotifOpen(false);
-              }}
-              className={cn(
-                "p-1.5 rounded-lg cursor-pointer",
-                "text-muted-foreground hover:text-foreground hover:bg-muted",
-                "transition-all duration-200",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
-              )}
-              aria-label="Menu do perfil"
-            >
-              <div className="h-8 w-8 rounded-full bg-primary/15 flex items-center justify-center">
-                <User className="h-4 w-4 text-primary" />
+            {isPending ? (
+              <div className="p-1.5 rounded-lg">
+                <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
               </div>
-            </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setIsProfileOpen((v) => !v);
+                  setIsNotifOpen(false);
+                }}
+                className={cn(
+                  "p-1.5 rounded-lg cursor-pointer",
+                  "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  "transition-all duration-200",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+                )}
+                aria-label="Menu do perfil"
+              >
+                <div className="h-8 w-8 rounded-full bg-primary/15 flex items-center justify-center overflow-hidden">
+                  {user?.image ? (
+                    <img
+                      src={user.image}
+                      alt={user.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-4 w-4 text-primary" />
+                  )}
+                </div>
+              </button>
+            )}
             <AnimatePresence>
               {isProfileOpen && (
                 <ProfileDropdown
                   theme={theme}
                   toggle={toggle}
                   navigateTo={navigateTo}
+                  user={user}
                 />
               )}
             </AnimatePresence>
@@ -421,10 +449,9 @@ export default function Navbar({
           "transition-colors duration-300",
         )}
       >
-        {BOTTOM_NAV_ITEMS.map((item, index) => {
+        {MAIN_NAV_ITEMS.map((item, index) => {
           const Icon = item.icon;
-          const isActive = currentPage === item.id;
-          const isMenu = item.id === "menu";
+          const isActive = pathname === item.href;
 
           return (
             <React.Fragment key={item.id}>
@@ -450,37 +477,46 @@ export default function Navbar({
               )}
 
               <button
-                onClick={() =>
-                  isMenu ? setIsMobileMenuOpen(true) : navigateTo(item.id)
-                }
+                onClick={() => navigateTo(item.id)}
                 className={cn(
                   "flex flex-col items-center justify-center gap-0.5",
                   "flex-1 pt-2 pb-1 cursor-pointer",
                   "transition-all duration-200",
                   "focus-visible:outline-none",
-                  isActive && !isMenu
-                    ? "text-primary"
-                    : "text-muted-foreground",
+                  isActive ? "text-primary" : "text-muted-foreground",
                 )}
                 aria-label={item.label}
               >
                 <Icon
                   className={cn(
                     "h-5 w-5 transition-colors duration-200",
-                    isActive && !isMenu && "text-primary",
+                    isActive && "text-primary",
                   )}
                 />
                 <span className="text-[10px] font-medium leading-tight">
                   {item.label}
                 </span>
                 {/* Active dot indicator */}
-                {isActive && !isMenu && (
+                {isActive && (
                   <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-primary" />
                 )}
               </button>
             </React.Fragment>
           );
         })}
+        {/* Menu trigger button (mobile only) */}
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className={cn(
+            "flex flex-col items-center justify-center gap-0.5",
+            "flex-1 pt-2 pb-1 cursor-pointer text-muted-foreground",
+            "transition-all duration-200 focus-visible:outline-none",
+          )}
+          aria-label="Menu"
+        >
+          <Menu className="h-5 w-5" />
+          <span className="text-[10px] font-medium leading-tight">Menu</span>
+        </button>
       </nav>
 
       {/* ──────────────────────────────────────────────────────────────────
@@ -517,19 +553,37 @@ export default function Navbar({
             >
               {/* Header */}
               <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-border">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center">
-                    <User className="h-5 w-5 text-primary" />
+                {isPending ? (
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+                    <div className="space-y-1.5">
+                      <div className="h-4 w-24 bg-muted rounded animate-pulse" />
+                      <div className="h-3 w-32 bg-muted rounded animate-pulse" />
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">
-                      Dr. Admin
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      admin@vigidoc.com
-                    </p>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center overflow-hidden">
+                      {user?.image ? (
+                        <img
+                          src={user.image}
+                          alt={user.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-5 w-5 text-primary" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        {user?.name || "Usuário"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {user?.email || "usuario@vigidoc.com"}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
@@ -550,9 +604,9 @@ export default function Navbar({
                   Navegação
                 </p>
                 <div className="space-y-1">
-                  {NAV_ITEMS.map((item) => {
+                  {MAIN_NAV_ITEMS.map((item) => {
                     const Icon = item.icon;
-                    const isActive = currentPage === item.id;
+                    const isActive = pathname === item.href;
                     return (
                       <button
                         key={item.id}
@@ -579,7 +633,7 @@ export default function Navbar({
                       "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium cursor-pointer",
                       "transition-all duration-200",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
-                      currentPage === "scan"
+                      currentPage === "scan" || pathname === APP_ROUTES.SCAN
                         ? "bg-primary/10 text-primary"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
@@ -630,7 +684,7 @@ export default function Navbar({
                   <DrawerItem
                     icon={LogOut}
                     label="Sair"
-                    onClick={() => router.push("/logout")}
+                    onClick={() => navigateTo("logout")}
                     danger
                   />
                 </div>
@@ -731,10 +785,12 @@ function ProfileDropdown({
   theme,
   toggle,
   navigateTo,
+  user,
 }: {
   theme: "light" | "dark";
   toggle: () => void;
   navigateTo: (page: string) => void;
+  user: any;
 }) {
   const router = useRouter();
 
@@ -752,8 +808,12 @@ function ProfileDropdown({
     >
       {/* User info header */}
       <div className="px-4 py-3 border-b border-border">
-        <p className="text-sm font-semibold text-foreground">Dr. Admin</p>
-        <p className="text-xs text-muted-foreground">admin@vigidoc.com</p>
+        <p className="text-sm font-semibold text-foreground">
+          {user?.name || "Usuário"}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {user?.email || "usuario@vigidoc.com"}
+        </p>
       </div>
 
       <div className="py-1">
