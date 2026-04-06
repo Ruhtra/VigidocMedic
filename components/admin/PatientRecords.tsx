@@ -22,14 +22,17 @@ import {
   AlertCircle,
   Gauge,
   TrendingUp,
+  List,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fadeInUp, staggerContainer } from "@/animations/variants";
 import type { Patient, RecordSession, VitalValue, VitalStatus } from "@/types/patient";
+import PatientCharts from "./PatientCharts";
 
 /* ==========================================================================
    TYPES & CONSTANTS
@@ -326,13 +329,14 @@ export default function PatientRecords({ patient }: PatientRecordsProps) {
                 size="sm"
                 onClick={() => setPeriodFilter(option.value)}
                 className={cn(
-                  "h-8 px-3 text-xs whitespace-nowrap",
+                  "h-8 px-2 sm:px-3 text-xs whitespace-nowrap",
                   periodFilter === option.value
                     ? ""
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {option.label}
+                <span className="hidden sm:inline">{option.label}</span>
+                <span className="sm:hidden">{option.label.replace(' dias', 'd').replace('Todos', 'All')}</span>
               </Button>
             ))}
           </div>
@@ -365,7 +369,7 @@ export default function PatientRecords({ patient }: PatientRecordsProps) {
                   size="sm"
                   onClick={() => setSeverityFilter(option.value)}
                   className={cn(
-                    "h-8 px-3 text-xs whitespace-nowrap gap-1.5",
+                    "h-8 px-2 sm:px-3 text-xs whitespace-nowrap gap-1.5",
                     severityFilter === option.value
                       ? option.value === "alert"
                         ? "bg-orange-100/80 text-orange-800 hover:bg-orange-200/80 dark:bg-orange-900/40 dark:text-orange-200"
@@ -382,7 +386,7 @@ export default function PatientRecords({ patient }: PatientRecordsProps) {
                   )}
                 >
                   <Icon size={14} />
-                  {option.label}
+                  <span className="hidden sm:inline">{option.label}</span>
                   {count > 0 && (
                     <span
                       className={cn(
@@ -402,20 +406,35 @@ export default function PatientRecords({ patient }: PatientRecordsProps) {
         </div>
       </div>
 
-      {/* ── CHART PLACEHOLDER ── */}
-      <ChartPlaceholder />
+      {/* ── TABS DE VISUALIZAÇÃO: Gráficos vs Lista ── */}
+      <Tabs defaultValue="charts" className="w-full">
+        <TabsList className="mb-4 w-full sm:w-auto grid grid-cols-2 sm:inline-flex">
+          <TabsTrigger value="charts" className="gap-2 text-sm shadow-sm">
+            <BarChart3 size={16} />
+            <span>Gráficos</span>
+          </TabsTrigger>
+          <TabsTrigger value="list" className="gap-2 text-sm shadow-sm">
+            <List size={16} />
+            <span>Histórico</span>
+          </TabsTrigger>
+        </TabsList>
 
-      {/* ── RECORDS TIMELINE ── */}
-      <div>
-        <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2 mb-4">
-          <Clock size={14} />
-          Registros
-          <span className="text-xs font-normal normal-case tracking-normal ml-1 opacity-70">
-            ({filteredRecords.length} registro{filteredRecords.length !== 1 ? "s" : ""})
-          </span>
-        </h2>
+        <TabsContent value="charts" className="mt-0">
+          <PatientCharts records={filteredRecords} />
+        </TabsContent>
 
-        <AnimatePresence mode="wait">
+        <TabsContent value="list" className="mt-0">
+          <div className="mb-4">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <Clock size={14} />
+              Lista de Registros
+              <span className="text-xs font-normal normal-case tracking-normal ml-1 opacity-70">
+                ({filteredRecords.length} registro{filteredRecords.length !== 1 ? "s" : ""})
+              </span>
+            </h2>
+          </div>
+
+          <AnimatePresence mode="wait">
           {filteredRecords.length > 0 ? (
             <motion.div
               key={`${periodFilter}-${severityFilter}`}
@@ -469,7 +488,8 @@ export default function PatientRecords({ patient }: PatientRecordsProps) {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
