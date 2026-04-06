@@ -1,0 +1,280 @@
+generator client {
+  provider        = "prisma-client-js" // Corrigido para o padrão
+  output          = "../generated"
+  previewFeatures = ["relationJoins"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// -----------------------------------------------------------------------------
+// CORE: AUTENTICAÇÃO E USUÁRIOS
+// -----------------------------------------------------------------------------
+
+model User {
+  id            String  @id
+  name          String
+  email         String  @unique
+  emailVerified Boolean @default(false)
+  image         String?
+  role          Role    @default(user)
+
+  // [NEW] Status de aprovação mencionado no seu formulário de Request Access
+  status UserStatus @default(PENDING)
+
+  // [NEW] Token para notificações push (Expo)
+  expoPushToken String?
+
+  // [NEW] Gamificação: Ofensiva/Streak (Visto no home dashboard)
+  currentStreak Int       @default(0)
+  lastActiveAt  DateTime? @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions Session[]
+  accounts Account[]
+
+  // Profiles & Relations
+  patientProfile PatientProfile?
+  doctorProfile  DoctorProfile?
+  vitalRecords   VitalRecord[]
+  reminders      Reminder[]
+  sharedReports  SharedReport[]
+  notifications  Notification[]
+
+  @@map("user")
+}
+
+enum Role {
+  user // Paciente
+  admin // Administrador / Suporte
+  doctor // Médico / Profissional de saúde
+}
+
+enum UserStatus {
+  PENDING // Aguardando aprovação (visto no useForm/AuthService)
+  ACTIVE // Liberado para usar o app
+  BLOCKED // Acesso revogado
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// -----------------------------------------------------------------------------
+// DOMÍNIO: PACIENTES E MÉDICOS
+// -----------------------------------------------------------------------------
+
+model PatientProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // [NEW] Obrigatório no seu formulário de registro (ZodSchema)
+  cpf String @unique
+
+  birthDate DateTime? @db.Date
+  phone     String?
+  gender    String? // Ex: M, F, O
+  bloodType String? // Ex: A+, O-
+  height    Float? // Para cálculo de IMC futuro
+
+  emergencyContact String?
+  medicalNotes     String? @db.Text
+  diseaseType      String?
+  cid              String?
+  ecog             Int?
+  diagnosis        String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctorId String?
+  doctor   DoctorProfile? @relation(fields: [doctorId], references: [id])
+
+  @@index([doctorId])
+  @@map("patient_profile")
+}
+
+model DoctorProfile {
+  id         String  @id @default(uuid())
+  userId     String  @unique
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  crm        String  @unique
+  crmState   String? // [NEW] Estado de emissão do CRM (Importante no Brasil)
+  specialty  String?
+  phone      String? // [NEW] Telefone direto para o médico
+  bio        String? @db.Text
+  isVerified Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patients PatientProfile[]
+
+  @@map("doctor_profile")
+}
+
+// -----------------------------------------------------------------------------
+// DOMÍNIO: MONITORAMENTO E ALERTAS
+// -----------------------------------------------------------------------------
+
+model VitalRecord {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  recordedAt DateTime
+
+  // [NEW] Nível de severidade calculado (Sinalizador de "Atenção" no Dashboard)
+  severity Severity @default(NORMAL)
+  source   Source   @default(MANUAL) // Origem do dado (Mão ou Sensor)
+
+  systolic         Int?
+  diastolic        Int?
+  heartRate        Int?
+  temperature      Float?
+  oxygenSaturation Int?
+  weight           Float?
+  painLevel        Int?
+
+  // [NEW] Insights técnicos (Mencionados no docs/health-monitoring-specs.md)
+  sensorStatus String? // Status do Wearable na hora da coleta
+  aiInsight    String? @db.Text // Análise automática gerada pelo Backend/IA
+
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([recordedAt])
+  @@map("vital_record")
+}
+
+enum Severity {
+  NORMAL // Estável (Cyan/Green)
+  ALERT // Atenção (Yellow/Orange)
+  CRITICAL // Urgente (Red)
+}
+
+enum Source {
+  MANUAL // Entrada direta do usuário
+  SENSOR // Bluetooth / Wearable
+  AUTOMATIC // Wearable em segundo plano
+}
+
+// -----------------------------------------------------------------------------
+// DOMÍNIO: LEMBRETES E COMUNICAÇÃO
+// -----------------------------------------------------------------------------
+
+model Reminder {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  time    String // HH:mm
+  label   String
+  enabled Boolean  @default(true)
+  days    String[] // dias da semana
+
+  // [NEW] Alinhamento com a UI de Notificações
+  icon   String? // Nome do ícone do Ionicons (ex: 'sunny-outline')
+  period ReminderPeriod @default(MORNING)
+
+  reminderType String   @map("reminder_type") // Ex: MEDICINE, MEASUREMENT
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("reminders")
+}
+
+enum ReminderPeriod {
+  MORNING
+  AFTERNOON
+  NIGHT
+}
+
+// [NEW] Log de notificações enviadas (Histórico do usuário)
+model Notification {
+  id     String    @id @default(uuid())
+  userId String
+  user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title  String
+  body   String
+  type   String? // SYSTEM, ALERT, REMINDER
+  readAt DateTime?
+  sentAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+model SharedReport {
+  id                   String    @id @default(uuid())
+  userId               String    @map("user_id")
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shareCode            String    @unique @map("share_code")
+  title                String
+  includeBloodPressure Boolean   @map("include_blood_pressure")
+  includeHeartRate     Boolean   @map("include_heart_rate")
+  includeTemperature   Boolean   @map("include_temperature")
+  includeOxygen        Boolean   @map("include_oxygen")
+  includeWeight        Boolean   @map("include_weight")
+  includePain          Boolean   @map("include_pain")
+  includeProfile       Boolean   @map("include_profile")
+  dateFrom             DateTime? @map("date_from")
+  dateTo               DateTime? @map("date_to")
+  expiresAt            DateTime? @map("expires_at")
+  viewsCount           Int       @default(0) @map("views_count")
+  isActive             Boolean   @default(true) @map("is_active")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  @@map("shared_reports")
+}

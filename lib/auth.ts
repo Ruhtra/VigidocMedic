@@ -60,7 +60,7 @@ export const auth = betterAuth({
                 userId: user.id,
                 // O CPF e nascimento podem ser nulos inicialmente ou 
                 // atualizados via endpoint de perfil logo após o cadastro.
-                cpf: "", 
+                
               },
             });
           }
