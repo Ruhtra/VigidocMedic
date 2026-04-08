@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server';
 
 /**
- * Rota de configuração de versão do VigiDoc.
- * Controle manual via constante conforme solicitado.
+ * @swagger
+ * /api/config/version:
+ *   get:
+ *     summary: Get application version configuration
+ *     description: Returns the latest and minimum required versions for the mobile application to enforce updates.
+ *     tags: [System]
+ *     responses:
+ *       200:
+ *         description: Version configuration retrieved successfully
  */
 export async function GET() {
   const config = {

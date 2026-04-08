@@ -4,6 +4,48 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthContext } from "@/lib/casl/utils/getUserPermission";
 
+/**
+ * @swagger
+ * /api/shared-reports/{id}:
+ *   put:
+ *     summary: Update shared report status
+ *     description: Toggle report visibility (active/inactive).
+ *     tags: [Reports]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               is_active: { type: boolean }
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Updated successfully
+ * 
+ *   delete:
+ *     summary: Delete a shared report
+ *     description: Permanently remove a shared report.
+ *     tags: [Reports]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Deleted successfully
+ */
+
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> },

@@ -4,6 +4,48 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthContext } from "@/lib/casl/utils/getUserPermission";
 
+/**
+ * @swagger
+ * /api/reminders/{id}:
+ *   put:
+ *     summary: Update reminder status
+ *     description: Enable or disable a specific reminder.
+ *     tags: [Reminders]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               enabled: { type: boolean }
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Updated successfully
+ * 
+ *   delete:
+ *     summary: Delete a reminder
+ *     description: Remove a reminder from the user's schedule.
+ *     tags: [Reminders]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Deleted successfully
+ */
+
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> },

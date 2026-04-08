@@ -2,6 +2,37 @@ import { getAuthContext } from "@/lib/casl/utils/getUserPermission";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * @swagger
+ * /api/admin/patients:
+ *   get:
+ *     summary: [Admin] List all patients and their last vital signs
+ *     description: Retrieve a list of all patients with their profile data and the most recent vital record. Restricted to admin roles.
+ *     tags: [Admin]
+ *     parameters:
+ *       - in: query
+ *         name: dateFrom
+ *         schema: { type: string, format: date }
+ *         description: Filter vitals from this date
+ *       - in: query
+ *         name: dateTo
+ *         schema: { type: string, format: date }
+ *         description: Filter vitals up to this date
+ *       - in: query
+ *         name: userId
+ *         schema: { type: string }
+ *         description: Filter by specific user ID
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of patients retrieved successfully
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized (Admin only)
+ */
+
 export async function GET(req: Request) {
   console.time("admin-patients:auth");
   const authContext = await getAuthContext();

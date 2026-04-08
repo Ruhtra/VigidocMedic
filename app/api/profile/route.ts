@@ -4,6 +4,19 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthContext } from "@/lib/casl/utils/getUserPermission";
 
+/**
+ * @swagger
+ * /api/profile:
+ *   get:
+ *     summary: Retrieve patient profile
+ *     description: Returns the detailed profile of the authenticated patient.
+ *     tags: [Profile]
+ *     responses:
+ *       200:
+ *         description: Profile details
+ *       401:
+ *         description: Not authenticated
+ */
 export async function GET(req: Request) {
   const authContext = await getAuthContext();
 
@@ -44,6 +57,29 @@ export async function GET(req: Request) {
   }
 }
 
+/**
+ * @swagger
+ * /api/profile:
+ *   put:
+ *     summary: Update patient profile
+ *     description: Update or create the profile for the authenticated patient.
+ *     tags: [Profile]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               phone: { type: string, example: "+55 11 99999-9999" }
+ *               birthDate: { type: string, format: date, example: "1990-01-01" }
+ *               medicalNotes: { type: string, example: "No allergies" }
+ *     responses:
+ *       200:
+ *         description: Profile updated
+ *       401:
+ *         description: Not authenticated
+ */
 export async function PUT(req: Request) {
   const authContext = await getAuthContext();
 

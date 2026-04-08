@@ -4,6 +4,43 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthContext } from "@/lib/casl/utils/getUserPermission";
 
+/**
+ * @swagger
+ * /api/reminders:
+ *   get:
+ *     summary: List patient reminders
+ *     description: Retrieve all scheduled reminders (medications, vitals check) for the authenticated user.
+ *     tags: [Reminders]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of reminders
+ * 
+ *   post:
+ *     summary: Create a new reminder
+ *     description: Schedule a new reminder for the authenticated user.
+ *     tags: [Reminders]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [time, label]
+ *             properties:
+ *               time: { type: string, example: "08:00" }
+ *               label: { type: string, example: "Tomar remédio" }
+ *               days: { type: array, items: { type: string }, example: ["seg", "qua", "sex"] }
+ *               reminder_type: { type: string, example: "medication" }
+ *               enabled: { type: boolean, example: true }
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: Reminder created successfully
+ */
+
 export async function GET(req: Request) {
   const authContext = await getAuthContext();
 

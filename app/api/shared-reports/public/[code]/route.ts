@@ -1,6 +1,26 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * @swagger
+ * /api/shared-reports/public/{code}:
+ *   get:
+ *     summary: View a public shared report
+ *     description: Retrieve report data and vitals using a unique share code. Accessible without authentication.
+ *     tags: [Reports]
+ *     parameters:
+ *       - in: path
+ *         name: code
+ *         required: true
+ *         schema: { type: string }
+ *         description: The unique share code of the report
+ *     responses:
+ *       200:
+ *         description: Report data retrieved successfully
+ *       404:
+ *         description: Report not found or expired
+ */
+
 export async function GET(req: Request, { params }: { params: Promise<{ code: string }> }) {
   try {
     const resolvedParams = await params;

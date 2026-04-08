@@ -1,6 +1,24 @@
 import { getAuthContext } from "@/lib/casl/utils/getUserPermission";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+
+/**
+ * @swagger
+ * /api/patients:
+ *   get:
+ *     summary: List patients for the authenticated doctor
+ *     description: Retrieve a list of patients assigned to the current doctor, including their last vital sign summary.
+ *     tags: [Patients]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of patients retrieved successfully
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized
+ */
 import {
   resolveHeartRate,
   resolveO2Saturation,

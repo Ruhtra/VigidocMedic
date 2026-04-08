@@ -4,6 +4,50 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthContext } from "@/lib/casl/utils/getUserPermission";
 
+/**
+ * @swagger
+ * /api/shared-reports:
+ *   get:
+ *     summary: List patient's shared reports
+ *     description: Retrieve all reports created by the user to be shared with external doctors.
+ *     tags: [Reports]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of reports
+ * 
+ *   post:
+ *     summary: Create a new shared report
+ *     description: Generate a new shareable report with specific permissions.
+ *     tags: [Reports]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [share_code, title]
+ *             properties:
+ *               share_code: { type: string, example: "ABC-123" }
+ *               title: { type: string, example: "Relatório Mensal" }
+ *               include_blood_pressure: { type: boolean }
+ *               include_heart_rate: { type: boolean }
+ *               include_temperature: { type: boolean }
+ *               include_oxygen: { type: boolean }
+ *               include_weight: { type: boolean }
+ *               include_pain: { type: boolean }
+ *               include_profile: { type: boolean }
+ *               date_from: { type: string, format: date }
+ *               date_to: { type: string, format: date }
+ *               expires_at: { type: string, format: date-time }
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: Report created successfully
+ */
+
 export async function GET(req: Request) {
   const authContext = await getAuthContext();
 

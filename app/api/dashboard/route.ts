@@ -4,6 +4,22 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthContext } from "@/lib/casl/utils/getUserPermission";
 
+/**
+ * @swagger
+ * /api/dashboard:
+ *   get:
+ *     summary: Get user dashboard data
+ *     description: Retrieve user profile, vital signs history, and reminders in a single request for the home dashboard.
+ *     tags: [Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dashboard data retrieved successfully
+ *       401:
+ *         description: Not authenticated
+ */
+
 export async function GET(_req: Request) {
   const authContext = await getAuthContext();
 
