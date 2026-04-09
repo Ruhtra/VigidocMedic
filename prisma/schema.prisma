@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client-js" // Corrigido para o padrão
-  output          = "../generated"
+  output          = "./generated"
   previewFeatures = ["relationJoins"]
 }
 
@@ -116,7 +116,7 @@ model PatientProfile {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // [NEW] Obrigatório no seu formulário de registro (ZodSchema)
-  cpf String @unique
+  cpf String? @unique
 
   birthDate DateTime? @db.Date
   phone     String?

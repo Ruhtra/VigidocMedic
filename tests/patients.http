@@ -12,4 +12,11 @@ Content-Type: application/json
 ### @name getPatients
 GET {{baseUrl}}/api/patients
 Content-Type: application/json
-Authorization: Bearer TWl6s724BfMflOZiSQYseUPrKCMwZbrW
+Authorization: Bearer yLb0Bw91bkPuz27wYhOf2M0LuelEe3RT
+
+
+
+### @name getPatients
+GET {{baseUrl}}/api/me
+Content-Type: application/json
+Authorization: Bearer yLb0Bw91bkPuz27wYhOf2M0LuelEe3RT

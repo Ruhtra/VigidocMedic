@@ -6809,7 +6809,7 @@ export namespace Prisma {
   export type PatientProfileGroupByOutputType = {
     id: string
     userId: string
-    cpf: string
+    cpf: string | null
     birthDate: Date | null
     phone: string | null
     gender: string | null
@@ -6954,7 +6954,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       userId: string
-      cpf: string
+      cpf: string | null
       birthDate: Date | null
       phone: string | null
       gender: string | null
@@ -14537,7 +14537,7 @@ export namespace Prisma {
     NOT?: PatientProfileWhereInput | PatientProfileWhereInput[]
     id?: StringFilter<"PatientProfile"> | string
     userId?: StringFilter<"PatientProfile"> | string
-    cpf?: StringFilter<"PatientProfile"> | string
+    cpf?: StringNullableFilter<"PatientProfile"> | string | null
     birthDate?: DateTimeNullableFilter<"PatientProfile"> | Date | string | null
     phone?: StringNullableFilter<"PatientProfile"> | string | null
     gender?: StringNullableFilter<"PatientProfile"> | string | null
@@ -14559,7 +14559,7 @@ export namespace Prisma {
   export type PatientProfileOrderByWithRelationInput = {
     id?: SortOrder
     userId?: SortOrder
-    cpf?: SortOrder
+    cpf?: SortOrderInput | SortOrder
     birthDate?: SortOrderInput | SortOrder
     phone?: SortOrderInput | SortOrder
     gender?: SortOrderInput | SortOrder
@@ -14606,7 +14606,7 @@ export namespace Prisma {
   export type PatientProfileOrderByWithAggregationInput = {
     id?: SortOrder
     userId?: SortOrder
-    cpf?: SortOrder
+    cpf?: SortOrderInput | SortOrder
     birthDate?: SortOrderInput | SortOrder
     phone?: SortOrderInput | SortOrder
     gender?: SortOrderInput | SortOrder
@@ -14634,7 +14634,7 @@ export namespace Prisma {
     NOT?: PatientProfileScalarWhereWithAggregatesInput | PatientProfileScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"PatientProfile"> | string
     userId?: StringWithAggregatesFilter<"PatientProfile"> | string
-    cpf?: StringWithAggregatesFilter<"PatientProfile"> | string
+    cpf?: StringNullableWithAggregatesFilter<"PatientProfile"> | string | null
     birthDate?: DateTimeNullableWithAggregatesFilter<"PatientProfile"> | Date | string | null
     phone?: StringNullableWithAggregatesFilter<"PatientProfile"> | string | null
     gender?: StringNullableWithAggregatesFilter<"PatientProfile"> | string | null
@@ -15512,7 +15512,7 @@ export namespace Prisma {
 
   export type PatientProfileCreateInput = {
     id?: string
-    cpf: string
+    cpf?: string | null
     birthDate?: Date | string | null
     phone?: string | null
     gender?: string | null
@@ -15533,7 +15533,7 @@ export namespace Prisma {
   export type PatientProfileUncheckedCreateInput = {
     id?: string
     userId: string
-    cpf: string
+    cpf?: string | null
     birthDate?: Date | string | null
     phone?: string | null
     gender?: string | null
@@ -15552,7 +15552,7 @@ export namespace Prisma {
 
   export type PatientProfileUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    cpf?: StringFieldUpdateOperationsInput | string
+    cpf?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15573,7 +15573,7 @@ export namespace Prisma {
   export type PatientProfileUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    cpf?: StringFieldUpdateOperationsInput | string
+    cpf?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15593,7 +15593,7 @@ export namespace Prisma {
   export type PatientProfileCreateManyInput = {
     id?: string
     userId: string
-    cpf: string
+    cpf?: string | null
     birthDate?: Date | string | null
     phone?: string | null
     gender?: string | null
@@ -15612,7 +15612,7 @@ export namespace Prisma {
 
   export type PatientProfileUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    cpf?: StringFieldUpdateOperationsInput | string
+    cpf?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15631,7 +15631,7 @@ export namespace Prisma {
   export type PatientProfileUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    cpf?: StringFieldUpdateOperationsInput | string
+    cpf?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18010,7 +18010,7 @@ export namespace Prisma {
 
   export type PatientProfileCreateWithoutUserInput = {
     id?: string
-    cpf: string
+    cpf?: string | null
     birthDate?: Date | string | null
     phone?: string | null
     gender?: string | null
@@ -18029,7 +18029,7 @@ export namespace Prisma {
 
   export type PatientProfileUncheckedCreateWithoutUserInput = {
     id?: string
-    cpf: string
+    cpf?: string | null
     birthDate?: Date | string | null
     phone?: string | null
     gender?: string | null
@@ -18322,7 +18322,7 @@ export namespace Prisma {
 
   export type PatientProfileUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    cpf?: StringFieldUpdateOperationsInput | string
+    cpf?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18341,7 +18341,7 @@ export namespace Prisma {
 
   export type PatientProfileUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    cpf?: StringFieldUpdateOperationsInput | string
+    cpf?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18967,7 +18967,7 @@ export namespace Prisma {
 
   export type PatientProfileCreateWithoutDoctorInput = {
     id?: string
-    cpf: string
+    cpf?: string | null
     birthDate?: Date | string | null
     phone?: string | null
     gender?: string | null
@@ -18987,7 +18987,7 @@ export namespace Prisma {
   export type PatientProfileUncheckedCreateWithoutDoctorInput = {
     id?: string
     userId: string
-    cpf: string
+    cpf?: string | null
     birthDate?: Date | string | null
     phone?: string | null
     gender?: string | null
@@ -19090,7 +19090,7 @@ export namespace Prisma {
     NOT?: PatientProfileScalarWhereInput | PatientProfileScalarWhereInput[]
     id?: StringFilter<"PatientProfile"> | string
     userId?: StringFilter<"PatientProfile"> | string
-    cpf?: StringFilter<"PatientProfile"> | string
+    cpf?: StringNullableFilter<"PatientProfile"> | string | null
     birthDate?: DateTimeNullableFilter<"PatientProfile"> | Date | string | null
     phone?: StringNullableFilter<"PatientProfile"> | string | null
     gender?: StringNullableFilter<"PatientProfile"> | string | null
@@ -19870,7 +19870,7 @@ export namespace Prisma {
   export type PatientProfileCreateManyDoctorInput = {
     id?: string
     userId: string
-    cpf: string
+    cpf?: string | null
     birthDate?: Date | string | null
     phone?: string | null
     gender?: string | null
@@ -19888,7 +19888,7 @@ export namespace Prisma {
 
   export type PatientProfileUpdateWithoutDoctorInput = {
     id?: StringFieldUpdateOperationsInput | string
-    cpf?: StringFieldUpdateOperationsInput | string
+    cpf?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableStringFieldUpdateOperationsInput | string | null
@@ -19908,7 +19908,7 @@ export namespace Prisma {
   export type PatientProfileUncheckedUpdateWithoutDoctorInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    cpf?: StringFieldUpdateOperationsInput | string
+    cpf?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableStringFieldUpdateOperationsInput | string | null
@@ -19927,7 +19927,7 @@ export namespace Prisma {
   export type PatientProfileUncheckedUpdateManyWithoutDoctorInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    cpf?: StringFieldUpdateOperationsInput | string
+    cpf?: NullableStringFieldUpdateOperationsInput | string | null
     birthDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableStringFieldUpdateOperationsInput | string | null

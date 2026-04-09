@@ -13,14 +13,15 @@ export async function getAuthContext() {
   let userContext: { id: string; role: string; doctorId?: string } | null =
     null;
 
-  if (headerUserId && headerUserRole && headerDoctorId) {
+  if (headerUserId && headerUserRole) {
     userContext = {
       id: headerUserId,
       role: headerUserRole,
-      doctorId: headerDoctorId,
+      doctorId: headerDoctorId || undefined,
     };
   } else {
     const session = await auth.api.getSession({ headers: head });
+
     if (session) {
       userContext = {
         id: session.user.id,

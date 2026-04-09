@@ -11,6 +11,8 @@ export const auth = betterAuth({
     enabled: true,
   },
   session: {
+    expiresIn: 60 * 60 * 24 * 365, // 1 ano de duração da sessão
+    updateAge: 60 * 60 * 24 * 7, // Atualiza a validade se o usuário usar o app após 7 dias
     cookieCache: {
       enabled: true,
       strategy: "jwt",
@@ -51,16 +53,15 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (user) => {
-          // Quando um novo usuário é criado com role 'user', 
+          // Quando um novo usuário é criado com role 'user',
           // garantimos que ele tenha um PatientProfile inicial.
           // Nota: Campos específicos como CPF devem ser preenchidos no step 2 do registro.
           if (user.role === "user") {
             await prisma.patientProfile.create({
               data: {
                 userId: user.id,
-                // O CPF e nascimento podem ser nulos inicialmente ou 
+                // O CPF e nascimento podem ser nulos inicialmente ou
                 // atualizados via endpoint de perfil logo após o cadastro.
-                
               },
             });
           }
@@ -77,20 +78,27 @@ export const auth = betterAuth({
     ? [
         ...process.env.TRUSTED_ORIGINS.split(","),
         "http://localhost:3000",
+        "http://localhost:8080",
         "http://192.168.0.6:3000",
+        "http://192.168.0.3:3000",
         "http://192.168.0.6:8081",
+        "http://192.168.0.3:8081",
         "vigidocapp://",
       ]
     : [
         "http://localhost:3000",
+        "http://localhost:8080",
         "http://192.168.0.6:3000",
+        "http://192.168.0.3:3000",
         "http://192.168.0.6:8081",
+        "http://192.168.0.3:8081",
         "vigidocapp://",
       ],
   plugins: [
     expo(), // Suporte ao @better-auth/expo client (mobile)
   ],
   advanced: {
+    disableOriginCheck: true, // Adicionado para desenvolvimento: evita erro MISSING_OR_NULL_ORIGIN
     trustedProxyHeaders: true,
     cookiePrefix: "vigidoc",
   },

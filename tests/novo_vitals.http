@@ -1,0 +1,15 @@
+@baseUrl = http://localhost:3000
+
+### @name login
+POST {{baseUrl}}/api/auth/sign-in/email
+Content-Type: application/json
+{
+    "email": "user@gmail.com",
+    "password": "ksf062213"
+}
+
+### @name getVitalsHistory
+# @prompt token Token de autenticação (pegue o valor do header Set-Cookie ou do body de login)
+GET {{baseUrl}}/api/novo/vitals/history?days=90
+Content-Type: application/json
+Authorization: Bearer {{token}}

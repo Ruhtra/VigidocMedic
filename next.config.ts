@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
           { key: "Access-Control-Allow-Credentials", value: "true" },
           {
             key: "Access-Control-Allow-Origin",
-            value: process.env.CLIENT_ORIGIN || "http://localhost:8080",
+            value: "*",
           },
           {
             key: "Access-Control-Allow-Methods",

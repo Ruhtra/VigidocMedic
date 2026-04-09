@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
  * @swagger
  * /api/admin/patients:
  *   get:
- *     summary: [Admin] List all patients and their last vital signs
+ *     summary: "[Admin] List all patients and their last vital signs"
  *     description: Retrieve a list of all patients with their profile data and the most recent vital record. Restricted to admin roles.
  *     tags: [Admin]
  *     parameters:
