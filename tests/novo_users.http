@@ -1,0 +1,33 @@
+### Rotas de Usuário (Domínio Novo API)
+@baseUrl = http://localhost:3000
+
+# ------------------------------------------------------------------
+# MÓDULO DE USUÁRIOS
+# ------------------------------------------------------------------
+
+### @name SignupUser
+# Efetua o pré-cadastro do usuário com status PENDING
+POST {{baseUrl}}/api/novo/users/signup
+Content-Type: application/json
+
+{
+  "name": "Usuário Teste",
+  "email": "usuario.teste@example.com",
+  "password": "SenhaForte123!",
+  "cpf": "12345678901",
+  "phone": "11999999999",
+  "birthDate": "15/08/1990"
+}
+
+###
+
+# @name ApproveUser
+# Aprova um usuário e o coloca no status ACTIVE (Apenas Admin)
+# Substitua o ID pelo ID retornado na rota anterior (SignupUser).
+@userIdToApprove = a_id_do_usuario_aqui
+
+POST {{baseUrl}}/api/novo/users/{{userIdToApprove}}/approve
+Content-Type: application/json
+# Utilizando usuário admin já logado/conhecido
+x-user-id: SEU_ADMIN_USER_ID
+x-user-role: admin

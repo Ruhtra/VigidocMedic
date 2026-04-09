@@ -7,6 +7,30 @@ import {
 } from "./dtos";
 import { headers } from "next/headers";
 
+/**
+ * @swagger
+ * /api/novo/vitals/history:
+ *   get:
+ *     summary: Get user vital signs history
+ *     description: Returns a list of vital sign records for the authenticated user within a specified period.
+ *     tags: [Vitals]
+ *     parameters:
+ *       - in: query
+ *         name: days
+ *         schema:
+ *           type: integer
+ *           default: 90
+ *         description: Number of days to include in the history
+ *     responses:
+ *       200:
+ *         description: History retrieved successfully
+ *       401:
+ *         description: Not authenticated
+ *       400:
+ *         description: Invalid query parameters
+ *       500:
+ *         description: Internal server error
+ */
 export async function GET(req: Request) {
   // 1. Autenticação e Autorização
   const authContext = await getAuthContext();
