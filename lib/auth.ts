@@ -40,9 +40,9 @@ export const auth = betterAuth({
         defaultValue: 0,
       },
       lastActiveAt: {
-        type: "number", // Mapeado para DateTime via timestamp
+        type: "date",
         required: false,
-        defaultValue: Date.now(),
+        defaultValue: new Date(),
       },
     },
   },
