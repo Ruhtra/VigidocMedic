@@ -50,7 +50,7 @@ export default function ApiDocs() {
             showSidebar: true,
             layout: 'modern',
             baseServerURL: typeof window !== 'undefined' ? window.location.origin : '',
-          }}
+          } as any}
         />
         <style jsx global>{`
           /* Hide some default elements to keep it clean */

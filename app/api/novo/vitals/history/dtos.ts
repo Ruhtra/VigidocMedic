@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { VitalRecord } from "@prisma/client";
+import { VitalRecord } from "@/prisma/generated/client";
 
 // DTO de Entrada - Validando os Parâmetros da Requisição
 export const vitalsHistoryRequestSchema = z.object({
