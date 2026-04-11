@@ -64,13 +64,13 @@ export async function POST(req: Request) {
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       console.warn(`[POST /api/novo/users/signup] Registration failed: Email ${email} already in use.`);
-      return NextResponse.json({ error: "Este e-mail já está em uso." }, { status: 400 });
+      return NextResponse.json({ error: "Este e-mail já está em uso.", field: "email" }, { status: 400 });
     }
 
     const existingCpf = await prisma.patientProfile.findUnique({ where: { cpf } });
     if (existingCpf) {
       console.warn(`[POST /api/novo/users/signup] Registration failed: CPF ${cpf} already registered.`);
-      return NextResponse.json({ error: "Este CPF já está cadastrado." }, { status: 400 });
+      return NextResponse.json({ error: "Este CPF já está cadastrado.", field: "cpf" }, { status: 400 });
     }
 
     // 2. Parse da Data de Nascimento (DD/MM/YYYY -> Date)
