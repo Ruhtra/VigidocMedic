@@ -1,0 +1,37 @@
+flowchart TD
+    Start([POST /api/novo/vitals/record]) --> Auth{Está Autenticado?}
+    Auth -- Não --> Error401[401 Unauthorized]
+    Auth -- Sim --> Validation{Zod: Dados Válidos?}
+    
+    Validation -- Não --> Error400[400 Bad Request]
+    Validation -- Sim --> CalcSeverity[Calcular Severidade - MEWS Logic]
+    
+    subgraph MEWS [Lógica de Severidade]
+    direction TB
+    CalcSeverity --> SYST[Pressão Sistólica]
+    CalcSeverity --> TEMP[Temperatura]
+    CalcSeverity --> HR[Frequência Cardíaca]
+    CalcSeverity --> O2[Saturação O2]
+    end
+    
+    MEWS --> GetOverallSeverity{Severidade Final}
+    GetOverallSeverity --> |CRITICAL| SeverCR[Status: CRITICAL]
+    GetOverallSeverity --> |ALERT/WARNING| SeverAL[Status: ALERT]
+    GetOverallSeverity --> |NORMAL| SeverNO[Status: NORMAL]
+
+    SeverCR & SeverAL & SeverNO --> StreakLogic[Calcular Streak]
+    
+    subgraph Streak [Lógica de Ofensiva]
+    direction TB
+    StreakLogic --> CheckLast[Check lastActiveAt]
+    CheckLast --> |Ativo Ontem| Incr[Streak + 1]
+    CheckLast --> |Pulou Dia| Reset[Streak = 1]
+    CheckLast --> |Já Ativo Hoje| Keep[Mantém Streak]
+    end
+
+    Incr & Reset & Keep --> Save[Prisma Transaction: Save VitalRecord + Update User]
+    Save --> Success([201 Created + New Streak])
+
+    style MEWS fill:#f0f7ff,stroke:#005fb8,stroke-width:2px
+    style Streak fill:#fff7e6,stroke:#d46b08,stroke-width:2px
+    style Success fill:#f6ffed,stroke:#52c41a,stroke-width:2px

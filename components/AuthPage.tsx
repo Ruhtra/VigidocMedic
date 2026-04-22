@@ -272,6 +272,7 @@ export default function AuthPage({
         email: data.email,
         password: data.password,
         name: `${data.firstName} ${data.lastName}`,
+        role: "doctor",
       });
 
       setIsLoading(false);
@@ -937,7 +938,9 @@ export default function AuthPage({
                                   )}
                                   initial={{ width: 0 }}
                                   animate={{
-                                    width: `${(passwordStrength.score / 5) * 100}%`,
+                                    width: `${
+                                      (passwordStrength.score / 5) * 100
+                                    }%`,
                                   }}
                                   transition={{
                                     duration: 0.4,
@@ -951,10 +954,10 @@ export default function AuthPage({
                                   passwordStrength.score <= 1
                                     ? "text-red-500"
                                     : passwordStrength.score <= 2
-                                      ? "text-amber-500"
-                                      : passwordStrength.score <= 3
-                                        ? "text-yellow-500"
-                                        : "text-teal-500",
+                                    ? "text-amber-500"
+                                    : passwordStrength.score <= 3
+                                    ? "text-yellow-500"
+                                    : "text-teal-500",
                                 )}
                               >
                                 {passwordStrength.label}

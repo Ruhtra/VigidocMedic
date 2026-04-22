@@ -22,10 +22,16 @@ export const authRoutes = ["/login", "/register", "/forgot-password"];
 export const apiAuthPrefix = "/api/auth";
 
 /**
+ * An array of routes that require doctor role
+ * @type {string[]}
+ */
+export const doctorRoutes = ["/doctor", "/patients", "/relatorios", "/triagem"];
+
+/**
  * An array of routes that require admin role
  * @type {string[]}
  */
-export const adminRoutes = ["/admin", "/patients"];
+export const adminRoutes = ["/admin"];
 
 /**
  * An array of routes that require user role
@@ -38,6 +44,7 @@ export const userRoutes = ["/user"];
  * @type {Record<string, string>}
  */
 export const DEFAULT_LOGIN_REDIRECT: Record<string, string> = {
-  admin: "/admin",
+  admin: "/doctor",
   user: "/user",
+  doctor: "/doctor",
 };

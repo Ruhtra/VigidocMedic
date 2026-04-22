@@ -13,4 +13,8 @@ export const permissions: Record<Role, PermissionsFn> = {
     can("get", "User", { id: user.id });
     can("update", "User", { id: user.id });
   },
+  doctor(user, { can }) {
+    can("manage", "all");
+    // can("update", "User", { id: user.id });
+  },
 };

@@ -18,14 +18,14 @@ export interface NavItem {
 }
 
 export const MAIN_NAV_ITEMS: NavItem[] = [
-  { id: "dashboard", label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { id: "dashboard", label: "Dashboard", href: "/doctor", icon: LayoutDashboard },
   { id: "patients", label: "Pacientes", href: "/patients", icon: Users },
   { id: "triage", label: "Triagem", href: "/triagem", icon: ShieldAlert },
   { id: "reports", label: "Relatórios", href: "/relatorios", icon: FileText },
 ];
 
 export const MOBILE_BOTTOM_NAV_ITEMS: NavItem[] = [
-  { id: "dashboard", label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { id: "dashboard", label: "Dashboard", href: "/doctor", icon: LayoutDashboard },
   { id: "patients", label: "Pacientes", href: "/patients", icon: Users },
   // Scan FAB is handled separately in the UI
   { id: "triage", label: "Triagem", href: "/triagem", icon: ShieldAlert },
@@ -39,7 +39,7 @@ export const USER_NAV_ITEMS: NavItem[] = [
 ];
 
 export const APP_ROUTES = {
-  DASHBOARD: "/admin",
+  DASHBOARD: "/doctor",
   PATIENTS: "/patients",
   TRIAGE: "/triagem",
   REPORTS: "/relatorios",

@@ -40,12 +40,10 @@ export async function GET(req: Request) {
 
   // Exemplo de verificação CASL para listagem
   if (
-    (cannot("get", {
+    cannot("get", {
       kind: "User",
       id: "ANY",
-    }) &&
-      user.role !== "admin") ||
-    user.doctorId == null
+    })
   ) {
     // Basic protection (allowing only admin to view patients list or patients detail here unless specified by casl)
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
@@ -57,7 +55,7 @@ export async function GET(req: Request) {
 
     // const doctorId = user.doctorId;
 
-    if (false) {
+    if (!user.doctorId) {
       // Se não for um médico (não tem doctorProfile), não vê ninguém na lista de gestão
       return NextResponse.json([]);
     }

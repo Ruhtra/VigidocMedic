@@ -1,0 +1,16 @@
+sequenceDiagram
+    autonumber
+    participant App as App Mobile/Web
+    participant API as API (/api/novo/users/signup)
+    participant BA as Better-Auth Service
+    participant DB as Banco de Dados (Prisma)
+
+    App->>API: POST { name, email, password, cpf, phone... }
+    API->>DB: Verifica duplicidade (Email/CPF)
+    Note over DB: Se existir, retorna 400
+    API->>BA: auth.api.signUpEmail({ email, password, name })
+    BA->>DB: Cria registro na tabela 'user' (Status: PENDING)
+    BA->>DB: Hook After: Cria PatientProfile vazio
+    BA-->>API: Retorna objeto 'createdUser'
+    API->>DB: prisma.patientProfile.upsert (Atualiza CPF/Phone/BirthDate)
+    API-->>App: 201 Created ("Aguardando aprovação")

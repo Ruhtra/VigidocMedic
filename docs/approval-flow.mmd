@@ -1,0 +1,13 @@
+sequenceDiagram
+    autonumber
+    participant Admin as Painel Admin
+    participant API as API (/api/novo/users/[id]/approve)
+    participant Auth as Auth Context (CASL)
+    participant DB as Banco de Dados (Prisma)
+
+    Admin->>API: POST /id/approve
+    API->>Auth: Verifica se role == 'admin'
+    Note over Auth: Se não for admin, retorna 403
+    API->>DB: Busca usuário pelo ID
+    API->>DB: prisma.user.update({ status: 'ACTIVE' })
+    API-->>Admin: 200 OK (Usuário Ativado)

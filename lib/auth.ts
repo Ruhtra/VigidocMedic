@@ -23,6 +23,7 @@ export const auth = betterAuth({
       role: {
         type: "string",
         defaultValue: "user",
+        input: true, // <--- ADICIONE ISSO PARA PERMITIR NO SIGNUP
       },
       // [NEW] Status de aprovação para o fluxo de Request Access
       status: {
@@ -53,15 +54,18 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (user) => {
-          // Quando um novo usuário é criado com role 'user',
-          // garantimos que ele tenha um PatientProfile inicial.
-          // Nota: Campos específicos como CPF devem ser preenchidos no step 2 do registro.
+          // Garante a criação do perfil correto baseado na role
           if (user.role === "user") {
             await prisma.patientProfile.create({
               data: {
                 userId: user.id,
-                // O CPF e nascimento podem ser nulos inicialmente ou
-                // atualizados via endpoint de perfil logo após o cadastro.
+              },
+            });
+          } else if (user.role === "doctor") {
+            await prisma.doctorProfile.create({
+              data: {
+                userId: user.id,
+                crm: `PENDING-${user.id.substring(0, 8)}`,
               },
             });
           }
